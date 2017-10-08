@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="orderPageMarginRL">15dp</dimen>
+    <dimen name="orderPageValuesMarginRL">10dp</dimen>
+    <dimen name="itemLineMarginTop">5dp</dimen>
+    <dimen name="statusMarginRight">79dp</dimen>
+</resources>
