@@ -1,5 +1,8 @@
 package com.nerv.pricepoint;
 
+import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.util.Log;
 
@@ -44,5 +47,25 @@ public class Utils {
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         queue.add(request);
+    }
+
+    public static void removeFragment(Activity activity, Fragment fragment) {
+        if (fragment == null) {
+            return;
+        }
+
+        FragmentTransaction fragT = activity.getFragmentManager().beginTransaction();
+        fragT.remove(fragment);
+        fragT.commit();
+    }
+
+    public static void setFragment(Activity activity, int containerId, Fragment fragment) {
+        if (fragment == null) {
+            return;
+        }
+
+        FragmentTransaction fragT = activity.getFragmentManager().beginTransaction();
+        fragT.replace(containerId, fragment);
+        fragT.commit();
     }
 }
