@@ -3,15 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/callGraph"
-        android:text="Connect"
-        android:layout_centerInParent="true"
-        android:textColor="#FFFFFF"
-        android:background="#00a1f1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-
     <FrameLayout
         android:id="@+id/pageContainer"
         android:layout_width="match_parent"

@@ -17,9 +17,11 @@ public class LoginPageFragment extends CustomFragment implements View.OnClickLis
     private EditText loginET;
     private EditText passwordET;
     private DatabaseManager databaseManager;
+    private PageController pageController;
 
     @Override
     public void init(MainActivity main) {
+        pageController = main.getPageController();
         databaseManager = main.getDatabaseManager();
     }
 
@@ -65,7 +67,12 @@ public class LoginPageFragment extends CustomFragment implements View.OnClickLis
                 public void logInCallback(DatabaseManager.LogInResult result) {
                     switch (result) {
                         case OK:
-                            databaseManager.retrieveUserTasks();
+                            databaseManager.retrieveUserTasks(new DatabaseManager.Callback() {
+                                @Override
+                                public void callback() {
+                                    pageController.setPage(PageController.Page.ORDERS);
+                                }
+                            });
                             break;
                         case USER_NOT_FOUND:
                             break;

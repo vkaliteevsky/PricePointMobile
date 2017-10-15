@@ -1,17 +1,25 @@
 package com.nerv.pricepoint;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.telecom.Call;
 import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.microsoft.identity.client.*;
+import com.microsoft.aad.adal.AuthenticationCallback;
+import com.microsoft.aad.adal.AuthenticationContext;
+import com.microsoft.aad.adal.AuthenticationException;
+import com.microsoft.aad.adal.AuthenticationResult;
+import com.microsoft.aad.adal.PromptBehavior;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,6 +27,9 @@ import java.util.List;
  */
 
 public class DatabaseManager {
+
+    public static final String TAG = MainActivity.class.getSimpleName();
+
     public interface AuthCallback {
         void authCallback();
     }
@@ -31,11 +42,42 @@ public class DatabaseManager {
         void logInCallback(LogInResult result);
     }
 
-    private final static String BASE_URL = "https://graph.microsoft.com/v1.0/sites/";
-    private final static String CLIENT_ID = "e1d891f5-b7b2-4a7d-88ba-964fb697d332";
-    private final static String SCOPES [] = {"https://graph.microsoft.com/User.Read"
-                                            ,"https://graph.microsoft.com/Sites.Read.All"
-                                            , "https://graph.microsoft.com/Sites.ReadWrite.All"};
+    public interface Callback {
+        void callback();
+    }
+
+    private final static String CLIENT_ID = "e5bd4077-60fc-4d61-a359-a8c80de8d17a";
+    private final static String AUTHORITY = "https://login.microsoftonline.com/common/oauth2/authorize";
+    private final static String RESOURCE = "https://pointbox.sharepoint.com";
+    private final static String REDIRECT_URI = "http://pricepointmobile";
+    private final static String APP_PREFERENCES = "appSettings";
+
+    private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
+
+        @Override
+        public void onError(Exception exc) {
+            if (exc instanceof AuthenticationException) {
+                Log.d(TAG, "Cancelled");
+            } else {
+                Log.d(TAG, "Authentication error:" + exc.getMessage());
+            }
+        }
+
+        @Override
+        public void onSuccess(AuthenticationResult result) {
+            authRes = result;
+
+            if (result == null || result.getAccessToken() == null
+                    || result.getAccessToken().isEmpty()) {
+                Log.d(TAG, "Token is empty");
+            } else {
+                aadUserId = authRes.getUserInfo().getUserId();
+                saveAADUserId();
+                authCallback.authCallback();
+            }
+        }
+    };
+
 
     private String siteId;
     private String taskListId;
@@ -44,9 +86,6 @@ public class DatabaseManager {
     private String stockListId;
 
     private Activity activity;
-    public PublicClientApplication clientApp;
-    private AuthenticationResult authResult;
-    private User user;
     private AuthCallback authCallback;
     private DBRequest dbRequest;
 
@@ -54,44 +93,72 @@ public class DatabaseManager {
     private String userLogin;
     private String userPassword;
 
+    public ArrayList<Order> orders;
+
+    public AuthenticationContext authContext;
+    private AuthenticationResult authRes;
+    private String aadUserId = "";
+    private SharedPreferences appSettings;
+
     public DatabaseManager(Activity activity) {
         this.activity = activity;
 
-        clientApp = new PublicClientApplication(activity, CLIENT_ID);
-
-        List<User> users;
-
-        try {
-            users = clientApp.getUsers();
-
-            if (users != null && users.size() == 1) {
-                user = users.get(0);
-            }
-        } catch (MsalClientException e) {
-            Log.d(MainActivity.TAG, "MSAL Exception Generated while getting users: " + e.toString());
-        }
+        authContext = new AuthenticationContext(activity, AUTHORITY, true);
+        appSettings = activity.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
     }
 
-    public void retrieveUserTasks() {
+    private void saveAADUserId() {
+        SharedPreferences.Editor editor = appSettings.edit();
+        editor.putString("aadUserId", aadUserId);
+        editor.apply();
+    }
+
+    private void getAADUserId() {
+        aadUserId = appSettings.getString("aadUserId", "");
+    }
+
+    public void retrieveUserTasks(final Callback callback) {
         if (userId == -1) {
             return;
         }
 
-        dbRequest.retrieveListItems(taskListId, new DBRequest.RequestCallback() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Log.d("", "");
-            }
+        Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.GET
+                , "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('Task')/items" +
+                        "?$filter=task_idman eq " + String.valueOf(userId)
+                , new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            orders = Order.getOrders(response.getJSONObject("d").getJSONArray("results"));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
 
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("", "");
-            }
-        });
+                        callback.callback();
+                    }
+                }
+                , new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                    }
+                });
+    }
 
-        dbRequest.expandFields(null);
-        dbRequest.filter("fields/task_idman eq " + String.valueOf(userId));
-        dbRequest.request();
+    public void getItemAttachments(String itemId) {
+        /*Utils.requestJSONObject(activity, authResult.getAccessToken(), Request.Method.GET
+                , BASE_URL + siteId + "/drive/root/children"
+                , new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d("", "");
+                    }
+                }
+                , new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("", "");
+                    }
+                });*/
     }
 
     public void checkLoginPassword(final String login, final String password, final LogInCallback callback) {
@@ -99,7 +166,44 @@ public class DatabaseManager {
             return;
         }
 
-        dbRequest.retrieveListItems(userListId, new DBRequest.RequestCallback() {
+        Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.GET
+                , "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('User')/items" +
+                        "?$filter=user_mail eq '" + login + "'" +
+                        "&$select=user_id,user_pass"
+                , new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            JSONArray lists = response.getJSONObject("d").getJSONArray("results");
+
+                            if (lists.length() == 0) {
+                                callback.logInCallback(LogInResult.USER_NOT_FOUND);
+                            } else {
+                                JSONObject fields = lists.getJSONObject(0);
+                                String user_pass = fields.getString("user_pass");
+
+                                if (password.equals(user_pass)) {
+                                    userId = fields.getInt("user_id");
+                                    userLogin = login;
+                                    userPassword = user_pass;
+
+                                    callback.logInCallback(LogInResult.OK);
+                                } else {
+                                    callback.logInCallback(LogInResult.WRONG_PASSWORD);
+                                }
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                , new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                    }
+                });
+
+        /*dbRequest.retrieveListItems(userListId, new DBRequest.RequestCallback() {
             @Override
             public void onResponse(JSONObject response) {
                 try {
@@ -135,84 +239,29 @@ public class DatabaseManager {
 
         dbRequest.expandFields("user_pass,user_id");
         dbRequest.filter("fields/user_mail eq '" + login + "'");
-        dbRequest.request();
-
-        //retrieve from User list
-        /*Utils.requestJSONObject(activity, authResult.getAccessToken(), Request.Method.GET
-                , BASE_URL + siteId + "/lists/" + userListId + "/items?$filter=fields/user_mail eq '"
-                        + login + "'&$expand=fields($select=user_pass)"
-                , new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            JSONArray lists = response.getJSONArray("value");
-
-                            if (lists.length() == 0) {
-                                callback.logInCallback(LogInResult.USER_NOT_FOUND);
-                            } else {
-                                String user_pass = lists.getJSONObject(0).getJSONObject("fields").getString("user_pass");
-
-                                if (password.equals(user_pass)) {
-                                    callback.logInCallback(LogInResult.OK);
-                                } else {
-                                    callback.logInCallback(LogInResult.WRONG_PASSWORD);
-                                }
-                            }
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                , new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                    }
-                });*/
+        dbRequest.request();*/
     }
 
-    public boolean silentConnect(AuthCallback callback) {
-        if (user != null) {
-            authCallback = callback;
-            clientApp.acquireTokenSilentAsync(SCOPES, user, getAuthCallback());
+    public boolean silentConnect(AuthCallback authCallback) {
+        getAADUserId();
+
+        if (!aadUserId.isEmpty()) {
+            this.authCallback = authCallback;
+            authContext.acquireTokenSilentAsync(RESOURCE, CLIENT_ID, aadUserId, callback);
             return true;
         }
 
         return false;
     }
 
-    public void interactiveConnect(AuthCallback callback) {
-        authCallback = callback;
-        clientApp.acquireToken(activity, SCOPES, getAuthCallback());
-    }
+    public void interactiveConnect(AuthCallback authCallback) {
+        this.authCallback = authCallback;
 
-    private AuthenticationCallback getAuthCallback() {
-        return new AuthenticationCallback() {
-            @Override
-            public void onSuccess(AuthenticationResult authenticationResult) {
-                authResult = authenticationResult;
-                retrieveListsInfo();
-            }
-
-            @Override
-            public void onError(MsalException exception) {
-                Log.d(MainActivity.TAG, "Authentication failed: " + exception.toString());
-
-                if (exception instanceof MsalClientException) {
-                } else if (exception instanceof MsalServiceException) {
-                } else if (exception instanceof MsalUiRequiredException) {
-                }
-            }
-
-            @Override
-            public void onCancel() {
-                Log.d(MainActivity.TAG, "User cancelled login.");
-            }
-        };
+        authContext.acquireToken(activity, RESOURCE, CLIENT_ID, REDIRECT_URI, "", PromptBehavior.Auto, "", callback);
     }
 
     private void retrieveListsInfo() {
-        if (authResult.getAccessToken() == null) {
+        /*if (authResult.getAccessToken() == null) {
             return;
         }
 
@@ -236,50 +285,50 @@ public class DatabaseManager {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                     }
-                });
+                });*/
     }
 
     private void getListsInfo() {
-        Utils.requestJSONObject(activity, authResult.getAccessToken(), Request.Method.GET
-                , BASE_URL + siteId + "/lists"
-                , new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            JSONArray lists = response.getJSONArray("value");
-                            for (int i = 0; i < lists.length(); i++) {
-                                JSONObject list = (JSONObject) lists.get(i);
-                                String name = list.getString("name");
-                                String id = list.getString("id");
+        dbRequest.retrieveLists(new DBRequest.RequestCallback() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    JSONArray lists = response.getJSONArray("value");
+                    for (int i = 0; i < lists.length(); i++) {
+                        JSONObject list = (JSONObject) lists.get(i);
+                        String name = list.getString("name");
+                        String id = list.getString("id");
 
-                                switch (name) {
-                                    case "Task":
-                                        taskListId = id;
-                                        break;
-                                    case "City":
-                                        cityListId = id;
-                                        break;
-                                    case "User":
-                                        userListId = id;
-                                        break;
-                                    case "Stock":
-                                        stockListId = id;
-                                        break;
-                                }
-                            }
-
-                            if (authCallback != null) {
-                                authCallback.authCallback();
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        switch (name) {
+                            case "Task":
+                                taskListId = id;
+                                break;
+                            case "City":
+                                cityListId = id;
+                                break;
+                            case "User":
+                                userListId = id;
+                                break;
+                            case "Stock":
+                                stockListId = id;
+                                break;
                         }
                     }
-                }
-                , new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
+
+                    if (authCallback != null) {
+                        authCallback.authCallback();
                     }
-                });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+
+        dbRequest.request();
     }
 }

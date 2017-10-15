@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.nerv.pricepoint">
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -24,18 +25,21 @@
         </activity>
 
         <activity
+            android:name="com.microsoft.aad.adal.AuthenticationActivity"
+            android:label="AAD Login" >
+        </activity>
+
+        <!--<activity
             android:name="com.microsoft.identity.client.BrowserTabActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <!--Add in your scheme/host from registered redirect URI-->
-                <!--By default, the scheme should be similar to 'msal[appId]' -->
                 <data android:scheme="msale1d891f5-b7b2-4a7d-88ba-964fb697d332"
                     android:host="auth" />
             </intent-filter>
-        </activity>
+        </activity>-->
     </application>
 
 </manifest>

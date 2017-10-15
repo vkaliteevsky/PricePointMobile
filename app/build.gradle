@@ -21,6 +21,10 @@ android {
     useLibrary  'org.apache.http.legacy'
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -29,13 +33,18 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:recyclerview-v7:25.0.0'
-
     compile 'com.google.code.gson:gson:2.3.1'
-    //msal
-    compile('com.microsoft.identity.client:msal:0.1.+') {
-        exclude group: 'com.android.support', module: 'appcompat-v7'
+
+    compile('com.microsoft.aad:adal:1.13.+') {
+        // if your app includes android support
+        // libraries or Gson in its dependencies
+        // exclude that groupId from ADAL's compile
+        // task by un-commenting the appropriate
+        // line below
+
+        exclude group: 'com.android.support'
+        exclude group: 'com.google.code.gson'
     }
     compile 'com.android.volley:volley:1.0.0'
-
     testCompile 'junit:junit:4.12'
 }

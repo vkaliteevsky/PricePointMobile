@@ -12,19 +12,17 @@ import android.widget.FrameLayout;
 
 public class PageController {
     public enum Page {
-        CONNECT, LOGIN, ORDERS
+        NONE, LOGIN, ORDERS
     }
 
-    private Page page = Page.CONNECT;
+    private Page page = Page.NONE;
     private Fragment pageFragment;
 
     private Activity activity;
 
-    private View connectBtn;
 
     public PageController(Activity activity) {
         this.activity = activity;
-        connectBtn = activity.findViewById(R.id.callGraph);
     }
 
     public void setPage(Page page) {
@@ -35,13 +33,11 @@ public class PageController {
         Utils.removeFragment(activity, pageFragment);
 
         switch (page) {
-            case CONNECT:
-                connectBtn.setVisibility(View.VISIBLE);
-                pageFragment = null;
-                break;
             case LOGIN:
-                connectBtn.setVisibility(View.GONE);
                 pageFragment = FragmentManager.getFragment(FragmentManager.LOGIN_PAGE);
+                break;
+            case ORDERS:
+                pageFragment = FragmentManager.getFragment(FragmentManager.ORDERS_PAGE);
                 break;
         }
 

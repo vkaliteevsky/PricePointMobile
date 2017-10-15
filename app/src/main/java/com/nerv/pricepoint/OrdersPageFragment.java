@@ -1,7 +1,9 @@
 package com.nerv.pricepoint;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,12 +45,16 @@ public class OrdersPageFragment extends CustomFragment {
             toEditTasksCount = (TextView) itemView.findViewById(R.id.toEditTasksCount);
             fotosCount = (TextView) itemView.findViewById(R.id.fotosCount);
         }
+
+        public void setOrder(Order order) {
+
+        }
     }
 
     public static class OrderRecyclerAdapter extends RecyclerView.Adapter<OrderHolder> {
-        public ArrayList<Object> orders;
+        public ArrayList<Order> orders;
 
-        public OrderRecyclerAdapter(ArrayList<Object> orders) {
+        public OrderRecyclerAdapter(ArrayList<Order> orders) {
             this.orders = orders;
         }
 
@@ -61,7 +67,7 @@ public class OrdersPageFragment extends CustomFragment {
 
         @Override
         public void onBindViewHolder(OrderHolder holder, int position) {
-
+            holder.setOrder(orders.get(position));
         }
 
         @Override
@@ -72,11 +78,14 @@ public class OrdersPageFragment extends CustomFragment {
 
     private View view;
 
+    private Context context;
     private DatabaseManager databaseManager;
     private RecyclerView ordersRV;
+    private OrderRecyclerAdapter orderRecyclerAdapter;
 
     @Override
     public void init(MainActivity main) {
+        context = main;
         databaseManager = main.getDatabaseManager();
     }
 
@@ -86,6 +95,9 @@ public class OrdersPageFragment extends CustomFragment {
         view = inflater.inflate(R.layout.orders_page_layout, null);
 
         ordersRV = (RecyclerView) view.findViewById(R.id.ordersRV);
+        ordersRV.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+        orderRecyclerAdapter = new OrderRecyclerAdapter(databaseManager.orders);
+        ordersRV.setAdapter(orderRecyclerAdapter);
 
         return view;
     }
@@ -93,6 +105,9 @@ public class OrdersPageFragment extends CustomFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+
+        ordersRV = null;
+        orderRecyclerAdapter = null;
     }
 }
 

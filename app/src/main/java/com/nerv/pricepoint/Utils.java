@@ -19,6 +19,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +40,7 @@ public class Utils {
             public Map<String, String> getHeaders() throws AuthFailureError {
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Authorization", "Bearer " + accessToken);
-                headers.put("Accept", "application/json;odata.metadata=none");
+                headers.put("Accept", "application/json;odata=verbose");
                 return headers;
             }
         };
@@ -67,5 +70,32 @@ public class Utils {
         FragmentTransaction fragT = activity.getFragmentManager().beginTransaction();
         fragT.replace(containerId, fragment);
         fragT.commit();
+    }
+
+    public static Date stringToDate(String str) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        Date date = null;
+
+        try {
+            date = format.parse(str);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return new Date();
+    }
+
+    public static String dateToString(Date date) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+        return dateFormat.format(date);
+    }
+
+    public static String nullToEmpty(String str) {
+        if (str.equals("null")) {
+            return "";
+        } else {
+            return str;
+        }
     }
 }
