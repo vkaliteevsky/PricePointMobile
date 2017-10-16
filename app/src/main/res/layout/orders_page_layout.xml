@@ -2,36 +2,38 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@color/bgColor">
 
-    <RelativeLayout
+    <FrameLayout
+        android:layout_marginTop="@dimen/pageTitleMarginTop"
+        android:layout_marginBottom="@dimen/pageTitleMarginBottom"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/black">
+        android:layout_height="@dimen/pageTitleSize">
 
         <TextView
-            android:layout_marginLeft="@dimen/orderPageMarginRL"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:id="@+id/pageTitle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:textColor="@android:color/white"
-            android:layout_alignParentLeft="true"
-            android:text="ЗАКАЗ"/>
+            android:text="ЗАКАЗЫ"
+            android:textSize="13sp"
+            android:layout_gravity="center"
+            android:gravity="center"/>
 
-        <TextView
-            android:layout_marginRight="@dimen/statusMarginRight"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/white"
-            android:layout_alignParentRight="true"
-            android:text="СТАТУС"/>
+        <ImageButton
+            android:id="@+id/leftSideMenuBtn"
+            android:layout_width="@dimen/pageTitleSize"
+            android:layout_height="@dimen/pageTitleSize"
+            android:layout_marginLeft="@dimen/sideMenuMargin"
+            android:background="@android:color/white"/>
 
-    </RelativeLayout>
+    </FrameLayout>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/ordersRV"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/white">
+        android:background="@color/bgColor">
     </android.support.v7.widget.RecyclerView>
 
 

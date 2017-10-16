@@ -12,7 +12,7 @@ import android.widget.FrameLayout;
 
 public class PageController {
     public enum Page {
-        NONE, LOGIN, ORDERS
+        NONE, LOGIN, ORDERS, ORDER
     }
 
     private Page page = Page.NONE;
@@ -38,6 +38,9 @@ public class PageController {
                 break;
             case ORDERS:
                 pageFragment = FragmentManager.getFragment(FragmentManager.ORDERS_PAGE);
+                break;
+            case ORDER:
+                pageFragment = FragmentManager.getFragment(FragmentManager.ORDER_PAGE);
                 break;
         }
 

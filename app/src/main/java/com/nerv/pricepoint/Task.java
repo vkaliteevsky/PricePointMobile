@@ -1,5 +1,6 @@
 package com.nerv.pricepoint;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -16,6 +17,7 @@ public class Task {
     public String latitude = "";
     public String longitude= "";
     public String ean = "";
+    public String description = "";
 
     public int photosCount = 0;
 
@@ -28,6 +30,10 @@ public class Task {
 
     public String dbId;
 
+    public String category;
+
+    public String iconUrl = "";
+
     public Task(JSONObject fields, Order order) {
         try {
             dbId = fields.getString("GUID");
@@ -39,12 +45,26 @@ public class Task {
             comment = Utils.nullToEmpty(fields.optString("task_commet", ""));
             latitude = Utils.nullToEmpty(fields.optString("task_lat", ""));
             longitude = Utils.nullToEmpty(fields.optString("task_lon", ""));
+            category = Utils.nullToEmpty(fields.optString("task_class", ""));
             ean = Utils.nullToEmpty(fields.optString("task_ean", ""));
+            description = Utils.nullToEmpty(fields.optString("Title", ""));
             photosCount = fields.optInt("task_photo", 0);
             edit = fields.getBoolean("task_edit");
             noGoods = fields.getBoolean("task_no");
             done = fields.getBoolean("task_done");
             sync = fields.getBoolean("task_sync");
+
+            JSONArray imgs = fields.getJSONObject("AttachmentFiles").getJSONArray("results");
+
+            for (int i = 0; i < imgs.length(); i++) {
+                JSONObject img = imgs.getJSONObject(i);
+
+                if (img.optString("FileName").startsWith("ICON")) {
+                    iconUrl = "https://pointbox.sharepoint.com/_api/web/getfilebyserverrelativeurl('" +
+                            img.opt("ServerRelativeUrl") + "')/$value";
+                    //iconUrl = "https://pointbox.sharepoint.com" + img.opt("ServerRelativeUrl");
+                }
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

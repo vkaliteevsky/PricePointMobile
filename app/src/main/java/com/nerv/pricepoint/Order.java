@@ -17,8 +17,15 @@ public class Order {
     public String retail = "";
     public String city = "";
     public String address = "";
+    public String mark = "";
     public Date startDate;
     public Date endDate;
+    public int orderId;
+
+    public int completedTasks;
+    public int toEditTasks;
+    public int noGoodsTasks;
+    public int photos;
 
     public ArrayList<Task> tasks = new ArrayList<>();
 
@@ -28,6 +35,8 @@ public class Order {
         retail = fields.optString("task_retail");
         city = fields.optString("task_city");
         address = fields.optString("task_address");
+        orderId = fields.optInt("task_idorder", 0);
+        mark = Utils.nullToEmpty(fields.optString("task_mark"));
     }
 
     public static ArrayList<Order> getOrders(JSONArray tasks) {
@@ -52,5 +61,19 @@ public class Order {
 
 
         return new ArrayList<>(orders.values());
+    }
+
+    public void computeOrderInfo() {
+        completedTasks = 0;
+        toEditTasks = 0;
+        noGoodsTasks = 0;
+        photos = 0;
+
+        for (Task t : tasks) {
+            completedTasks += t.done ? 1 : 0;
+            toEditTasks += t.edit ? 1 : 0;
+            noGoodsTasks += t.noGoods ? 1 : 0;
+            photos += t.photosCount;
+        }
     }
 }

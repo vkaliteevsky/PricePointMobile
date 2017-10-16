@@ -12,6 +12,7 @@ import java.util.Map;
 public class FragmentManager {
     public static int LOGIN_PAGE = 0;
     public static int ORDERS_PAGE = 1;
+    public static int ORDER_PAGE = 2;
 
     private static Map<Integer, Fragment> fragments = new HashMap<>();
     private static MainActivity main;
@@ -20,6 +21,7 @@ public class FragmentManager {
         main = mainActivity;
         addFragment(LOGIN_PAGE, new LoginPageFragment());
         addFragment(ORDERS_PAGE, new OrdersPageFragment());
+        addFragment(ORDER_PAGE, new OrderPageFragment());
     }
 
     private static void addFragment(int id, CustomFragment fragment) {

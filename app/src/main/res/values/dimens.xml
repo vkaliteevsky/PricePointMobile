@@ -1,7 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="orderPageMarginRL">15dp</dimen>
+    <dimen name="orderItemMargin">7.5dp</dimen>
     <dimen name="orderPageValuesMarginRL">10dp</dimen>
     <dimen name="itemLineMarginTop">5dp</dimen>
     <dimen name="statusMarginRight">79dp</dimen>
+
+    <dimen name="LPETPaddindLR">15dp</dimen>
+    <dimen name="LPMargindLR">50dp</dimen>
+    <dimen name="LPLoginBtnMarginTop">15dp</dimen>
+
+    <dimen name="pageTitleSize">30dp</dimen>
+    <dimen name="pageTitleMarginTop">30dp</dimen>
+    <dimen name="pageTitleMarginBottom">30dp</dimen>
+    <dimen name="pageTitleMarginBottomOrderPage">10dp</dimen>
+
+    <dimen name="sideMenuMargin">15dp</dimen>
+
+    <dimen name="orderValuesSpace">1dp</dimen>
+    <dimen name="spaceBtwnOrderItems">5dp</dimen>
+
+    <dimen name="orderPageSpace">10dp</dimen>
+    <dimen name="taskValuesSpace">2dp</dimen>
+
 </resources>

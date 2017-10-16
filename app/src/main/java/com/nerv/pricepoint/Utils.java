@@ -52,6 +52,27 @@ public class Utils {
         queue.add(request);
     }
 
+    public static void requestJSONObject1(Context context, final String accessToken, int method, String url
+            , Response.Listener<JSONObject> responceListener, Response.ErrorListener errorListener) {
+        RequestQueue queue = Volley.newRequestQueue(context);
+
+        JsonObjectRequest request = new JsonObjectRequest(method, url, null, responceListener, errorListener)
+        {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + accessToken);
+                return headers;
+            }
+        };
+
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                3000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        queue.add(request);
+    }
+
     public static void removeFragment(Activity activity, Fragment fragment) {
         if (fragment == null) {
             return;
@@ -80,13 +101,27 @@ public class Utils {
             date = format.parse(str);
         } catch (ParseException e) {
             e.printStackTrace();
+            date = new Date();
         }
 
-        return new Date();
+        return date;
+    }
+
+    public static String dateToDBString(Date date) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+        return dateFormat.format(date);
+    }
+
+    public static String intWithSpaces(int v) {
+        String strV = String.valueOf(v);
+        int width = 5 - strV.length();
+
+        return String.format("%1$" + String.valueOf(width) + "s", v);
     }
 
     public static String dateToString(Date date) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
 
         return dateFormat.format(date);
     }

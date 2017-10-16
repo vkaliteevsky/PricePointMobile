@@ -3,84 +3,97 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_margin="@dimen/orderItemMargin"
+    android:elevation="2dp"
     android:background="@android:color/white">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/orderItemMargin">
 
         <LinearLayout
-            android:layout_marginLeft="@dimen/orderPageMarginRL"
-            android:layout_alignParentLeft="true"
-            android:orientation="vertical"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/orderNumber"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@android:color/black"
-                android:textSize="18sp"
-                android:text="#000-014 FB" />
+                android:text="#000-014 FB"
+                android:layout_marginBottom="@dimen/orderValuesSpace"
+                android:textColor="@color/orderValuesColor" />
 
             <TextView
                 android:id="@+id/retail"
-                android:layout_width="wrap_content"
+                android:layout_width="155dp"
                 android:layout_height="wrap_content"
-                android:textColor="@android:color/black"
-                android:text="ЛЕНТА Саратов" />
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:scrollHorizontally="true"
+                android:text="ЛЕНТА Саратов"
+                android:layout_marginBottom="@dimen/orderValuesSpace"
+                android:textColor="@android:color/black" />
 
             <TextView
                 android:id="@+id/address"
-                android:layout_width="wrap_content"
+                android:layout_width="155dp"
                 android:layout_height="wrap_content"
-                android:textColor="@android:color/black"
-                android:text="Шкиперский пр.14" />
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:scrollHorizontally="true"
+                android:text="Шкиперский пр.14"
+                android:layout_marginBottom="@dimen/orderValuesSpace"
+                android:textColor="@android:color/black" />
 
             <LinearLayout
-                android:orientation="horizontal"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
 
                 <LinearLayout
-                    android:orientation="vertical"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@android:color/black"
-                        android:text="начало:" />
+                        android:text="начало:"
+                        android:layout_marginBottom="@dimen/orderValuesSpace"
+                        android:textColor="@android:color/black" />
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@android:color/black"
-                        android:text="окончание:" />
+                        android:text="окончание:"
+                        android:textColor="@android:color/black" />
 
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_marginLeft="@dimen/orderPageValuesMarginRL"
-                    android:orientation="vertical"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/orderPageValuesMarginRL"
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/startDate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@android:color/black"
-                        android:text="31.08.2017" />
+                        android:text="31.08.2017"
+                        android:layout_marginBottom="@dimen/orderValuesSpace"
+                        android:textColor="@android:color/black" />
 
                     <TextView
                         android:id="@+id/endDate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="@android:color/black"
-                        android:text="31.08.2017" />
+                        android:text="31.08.2017"
+                        android:textColor="@android:color/black" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -88,93 +101,101 @@
         </LinearLayout>
 
         <LinearLayout
-            android:layout_marginRight="@dimen/orderPageMarginRL"
-            android:layout_alignParentRight="true"
-            android:orientation="horizontal"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:orientation="horizontal">
 
             <LinearLayout
-                android:orientation="vertical"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/black"
-                    android:text="всего" />
+                    android:text="Всего"
+                    android:layout_marginBottom="@dimen/orderValuesSpace"
+                    android:textColor="@android:color/black" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/black"
-                    android:text="выполнено" />
+                    android:text="Выполнено"
+                    android:layout_marginBottom="@dimen/orderValuesSpace"
+                    android:textColor="@android:color/black" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/black"
-                    android:text="нет товара" />
+                    android:text="Нет товара"
+                    android:layout_marginBottom="@dimen/orderValuesSpace"
+                    android:textColor="@android:color/black" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/black"
-                    android:text="изменить" />
+                    android:text="Изменить"
+                    android:layout_marginBottom="@dimen/orderValuesSpace"
+                    android:textColor="@android:color/black" />
+
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/black"
-                    android:text="фото" />
+                    android:text="Фото"
+                    android:textColor="@android:color/black" />
 
             </LinearLayout>
 
             <LinearLayout
-                android:layout_marginLeft="@dimen/orderPageValuesMarginRL"
-                android:orientation="vertical"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/orderPageValuesMarginRL"
+                android:orientation="vertical">
 
                 <TextView
                     android:id="@+id/tasksCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/black"
-                    android:text="1111" />
+                    android:text="1111"
+                    android:layout_marginBottom="@dimen/orderValuesSpace"
+                    android:textColor="@color/orderValuesColor" />
 
                 <TextView
                     android:id="@+id/completeTasksCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/black"
-                    android:text="1111" />
+                    android:text="457"
+                    android:layout_marginBottom="@dimen/orderValuesSpace"
+                    android:textColor="@color/orderValuesColor" />
+
                 <TextView
                     android:id="@+id/noGoodsTasksCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/black"
-                    android:text="1111" />
+                    android:text="45"
+                    android:layout_marginBottom="@dimen/orderValuesSpace"
+                    android:textColor="@color/orderValuesColor" />
+
                 <TextView
                     android:id="@+id/toEditTasksCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/black"
-                    android:text="1111" />
+                    android:text="2"
+                    android:layout_marginBottom="@dimen/orderValuesSpace"
+                    android:textColor="@color/orderValuesColor" />
+
                 <TextView
                     android:id="@+id/fotosCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/black"
-                    android:text="1111" />
+                    android:text="2222"
+                    android:layout_marginBottom="@dimen/orderValuesSpace"
+                    android:textColor="@color/orderValuesColor" />
 
             </LinearLayout>
 
         </LinearLayout>
 
     </RelativeLayout>
-
-    <View
-        android:layout_marginTop="@dimen/itemLineMarginTop"
-        android:layout_width="match_parent"
-        android:layout_height="0.5dp"
-        android:background="@android:color/black"/>
 </LinearLayout>

@@ -3,4 +3,14 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="bgColor">#fc5a87</color>
+    <color name="etBottomLineColor">#e5ebeb</color>
+    <color name="etHintColor">#eaeaea</color>
+    <color name="loginBtnTextColor">#f9877c</color>
+
+    <color name="orderValuesColor">#f9877c</color>
+
+    <color name="orderPageBGColor">#f9fafb</color>
+    <color name="secondPriceColor">#b3b3b3</color>
 </resources>

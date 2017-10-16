@@ -78,16 +78,8 @@ public class DatabaseManager {
         }
     };
 
-
-    private String siteId;
-    private String taskListId;
-    private String cityListId;
-    private String userListId;
-    private String stockListId;
-
     private Activity activity;
     private AuthCallback authCallback;
-    private DBRequest dbRequest;
 
     private int userId = -1;
     private String userLogin;
@@ -96,9 +88,11 @@ public class DatabaseManager {
     public ArrayList<Order> orders;
 
     public AuthenticationContext authContext;
-    private AuthenticationResult authRes;
+    public AuthenticationResult authRes;
     private String aadUserId = "";
     private SharedPreferences appSettings;
+
+    public Order selectedOrder;
 
     public DatabaseManager(Activity activity) {
         this.activity = activity;
@@ -124,7 +118,7 @@ public class DatabaseManager {
 
         Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.GET
                 , "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('Task')/items" +
-                        "?$filter=task_idman eq " + String.valueOf(userId)
+                        "?$filter=task_idman eq " + String.valueOf(userId) + "&$expand=AttachmentFiles"
                 , new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -202,44 +196,6 @@ public class DatabaseManager {
                     public void onErrorResponse(VolleyError error) {
                     }
                 });
-
-        /*dbRequest.retrieveListItems(userListId, new DBRequest.RequestCallback() {
-            @Override
-            public void onResponse(JSONObject response) {
-                try {
-                    JSONArray lists = response.getJSONArray("value");
-
-                    if (lists.length() == 0) {
-                        callback.logInCallback(LogInResult.USER_NOT_FOUND);
-                    } else {
-                        JSONObject fields = lists.getJSONObject(0).getJSONObject("fields");
-                        String user_pass = fields.getString("user_pass");
-
-                        if (password.equals(user_pass)) {
-                            userId = fields.getInt("user_id");
-                            userLogin = login;
-                            userPassword = user_pass;
-
-                            callback.logInCallback(LogInResult.OK);
-                        } else {
-                            callback.logInCallback(LogInResult.WRONG_PASSWORD);
-                        }
-                    }
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("", "");
-            }
-        });
-
-        dbRequest.expandFields("user_pass,user_id");
-        dbRequest.filter("fields/user_mail eq '" + login + "'");
-        dbRequest.request();*/
     }
 
     public boolean silentConnect(AuthCallback authCallback) {
@@ -258,77 +214,5 @@ public class DatabaseManager {
         this.authCallback = authCallback;
 
         authContext.acquireToken(activity, RESOURCE, CLIENT_ID, REDIRECT_URI, "", PromptBehavior.Auto, "", callback);
-    }
-
-    private void retrieveListsInfo() {
-        /*if (authResult.getAccessToken() == null) {
-            return;
-        }
-
-        Utils.requestJSONObject(activity, authResult.getAccessToken(), Request.Method.GET
-                , BASE_URL + "pointbox.sharepoint.com:/boxpoint"
-                , new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        try {
-                            siteId = response.getString("id");
-
-                            dbRequest = new DBRequest(activity, siteId, authResult.getAccessToken());
-
-                            getListsInfo();
-                        } catch (JSONException e) {
-
-                        }
-                    }
-                }
-                , new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                    }
-                });*/
-    }
-
-    private void getListsInfo() {
-        dbRequest.retrieveLists(new DBRequest.RequestCallback() {
-            @Override
-            public void onResponse(JSONObject response) {
-                try {
-                    JSONArray lists = response.getJSONArray("value");
-                    for (int i = 0; i < lists.length(); i++) {
-                        JSONObject list = (JSONObject) lists.get(i);
-                        String name = list.getString("name");
-                        String id = list.getString("id");
-
-                        switch (name) {
-                            case "Task":
-                                taskListId = id;
-                                break;
-                            case "City":
-                                cityListId = id;
-                                break;
-                            case "User":
-                                userListId = id;
-                                break;
-                            case "Stock":
-                                stockListId = id;
-                                break;
-                        }
-                    }
-
-                    if (authCallback != null) {
-                        authCallback.authCallback();
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onErrorResponse(VolleyError error) {
-
-            }
-        });
-
-        dbRequest.request();
     }
 }
