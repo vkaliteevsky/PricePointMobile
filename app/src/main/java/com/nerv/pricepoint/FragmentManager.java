@@ -13,6 +13,7 @@ public class FragmentManager {
     public static int LOGIN_PAGE = 0;
     public static int ORDERS_PAGE = 1;
     public static int ORDER_PAGE = 2;
+    public static int TASK_PAGE = 3;
 
     private static Map<Integer, Fragment> fragments = new HashMap<>();
     private static MainActivity main;
@@ -22,6 +23,7 @@ public class FragmentManager {
         addFragment(LOGIN_PAGE, new LoginPageFragment());
         addFragment(ORDERS_PAGE, new OrdersPageFragment());
         addFragment(ORDER_PAGE, new OrderPageFragment());
+        addFragment(TASK_PAGE, new TaskPageFragment());
     }
 
     private static void addFragment(int id, CustomFragment fragment) {

@@ -1,14 +1,76 @@
 package com.nerv.pricepoint;
 
+import android.net.Uri;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.HashMap;
 
 /**
  * Created by NERV on 12.10.2017.
  */
 
 public class Task {
+    public enum ImgType {
+        NONE, ICON, PRICE, GOODS, BARCODE, SHELF;
+
+        public static ImgType getType(String v) {
+            switch (v) {
+                case "A":
+                    return PRICE;
+                case "B":
+                    return GOODS;
+                case "C":
+                    return BARCODE;
+                case "D":
+                    return SHELF;
+                case "ICON":
+                    return ICON;
+                default:
+                    return NONE;
+            }
+        }
+
+        public String fname(int taskId) {
+            String id = String.valueOf(taskId);
+
+            switch (this) {
+                case PRICE:
+                    return "A" + id;
+                case GOODS:
+                    return "B" + id;
+                case BARCODE:
+                    return "C" + id;
+                case SHELF:
+                    return "D" + id;
+                case ICON:
+                    return "ICON";
+                default:
+                    return "";
+            }
+        }
+    }
+
+    public class Img {
+        public String url = "";
+        public String path = "";
+        public boolean changed = false;
+        public ImgType type;
+        public int taskId;
+
+        public Img(String url, ImgType type, int taskId) {
+            this.url = url;
+            this.type = type;
+            this.taskId = taskId;
+        }
+
+        public String fname() {
+            return type.fname(taskId);
+        }
+    }
+
     public double costReg = 0;
     public double costCard = 0;
     public double costPromo = 0;
@@ -20,6 +82,7 @@ public class Task {
     public String description = "";
 
     public int photosCount = 0;
+    public int id;
 
     public boolean edit;
     public boolean noGoods;
@@ -32,7 +95,7 @@ public class Task {
 
     public String category;
 
-    public String iconUrl = "";
+    public HashMap<ImgType, Img> imgs = new HashMap<>();
 
     public Task(JSONObject fields, Order order) {
         try {
@@ -49,25 +112,37 @@ public class Task {
             ean = Utils.nullToEmpty(fields.optString("task_ean", ""));
             description = Utils.nullToEmpty(fields.optString("Title", ""));
             photosCount = fields.optInt("task_photo", 0);
+            id = fields.optInt("task_id", 0);
             edit = fields.getBoolean("task_edit");
             noGoods = fields.getBoolean("task_no");
             done = fields.getBoolean("task_done");
             sync = fields.getBoolean("task_sync");
 
-            JSONArray imgs = fields.getJSONObject("AttachmentFiles").getJSONArray("results");
+            JSONArray files = fields.getJSONObject("AttachmentFiles").getJSONArray("results");
 
-            for (int i = 0; i < imgs.length(); i++) {
-                JSONObject img = imgs.getJSONObject(i);
+            for (int i = 0; i < files.length(); i++) {
+                JSONObject file = files.getJSONObject(i);
+                final String fileName = file.optString("FileName");
+                ImgType type;
 
-                if (img.optString("FileName").startsWith("ICON")) {
-                    iconUrl = "https://pointbox.sharepoint.com/_api/web/getfilebyserverrelativeurl('" +
-                            img.opt("ServerRelativeUrl") + "')/$value";
-                    //iconUrl = "https://pointbox.sharepoint.com" + img.opt("ServerRelativeUrl");
+                if (fileName.startsWith("ICON")) {
+                    type = ImgType.ICON;
+                } else {
+                    type = ImgType.getType(String.valueOf(fileName.charAt(0)));
+                }
+
+                if (type != ImgType.NONE) {
+                    imgs.put(type, new Img(imgUrl(file), type, id));
                 }
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    private String imgUrl(JSONObject file) {
+        return "https://pointbox.sharepoint.com/_api/web/getfilebyserverrelativeurl('" +
+                file.opt("ServerRelativeUrl") + "')/$value";
     }
 
 }

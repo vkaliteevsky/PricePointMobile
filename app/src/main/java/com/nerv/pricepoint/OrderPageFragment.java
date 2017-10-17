@@ -5,6 +5,8 @@ package com.nerv.pricepoint;
  */
 
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.icu.util.Currency;
 import android.media.Image;
@@ -18,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.volley.VolleyError;
@@ -53,6 +56,7 @@ public class OrderPageFragment extends CustomFragment {
         private TextView ean;
         private TextView fstPrice;
         private TextView sndPrice;
+        private ProgressBar loadingBar;
 
         private Task task;
         private MainActivity main;
@@ -71,9 +75,11 @@ public class OrderPageFragment extends CustomFragment {
             ean = (TextView) itemView.findViewById(R.id.ean);
             fstPrice = (TextView) itemView.findViewById(R.id.fstPrice);
             sndPrice = (TextView) itemView.findViewById(R.id.sndPrice);
+            loadingBar = (ProgressBar) itemView.findViewById(R.id.loadingBar);
+            loadingBar.getIndeterminateDrawable().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
         }
 
-        public void setTask(Task task) {
+        public void setTask(final Task task) {
             this.task = task;
 
             description.setText(task.description);
@@ -81,39 +87,8 @@ public class OrderPageFragment extends CustomFragment {
             fstPrice.setText(task.costReg == 0 ? "..." : String.valueOf(task.costReg).replace(".", ",") + "\u20BD");
             sndPrice.setText(task.costCard == 0 ? "..." : String.valueOf(task.costCard).replace(".", ",") + "\u20BD");
 
-            if (!task.iconUrl.isEmpty()) {
-                /*Utils.requestJSONObject1(main, main.getDatabaseManager().authRes.getAccessToken(), com.android.volley.Request.Method.GET
-                        , task.iconUrl
-                        , new com.android.volley.Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                              Log.d("", "");
-                            }
-                        }
-                        , new com.android.volley.Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                Log.d("", "");
-                            }
-                        });*/
+            if (task.imgs.containsKey(Task.ImgType.ICON)) {
 
-                /*OkHttpClient client = new OkHttpClient().setProtocols(Collections.singletonList(Protocol.HTTP_1_1));
-                Request request = new Request.Builder()
-                        .header("Authorization", "Bearer " + main.getDatabaseManager().authRes.getAccessToken())
-                        .url(task.iconUrl)
-                        .build();
-
-                client.newCall(request).enqueue(new com.squareup.okhttp.Callback() {
-                    @Override
-                    public void onFailure(Request request, IOException e) {
-                        Log.d("", "");
-                    }
-
-                    @Override
-                    public void onResponse(Response response) throws IOException {
-                        Log.d("", "");
-                    }
-                });*/
                 OkHttpClient okHttpClient = new OkHttpClient().setProtocols(Collections.singletonList(Protocol.HTTP_1_1));;
                 okHttpClient.interceptors().add(new Interceptor() {
                     @Override
@@ -125,24 +100,36 @@ public class OrderPageFragment extends CustomFragment {
                     }
                 });
 
+                loadingBar.setVisibility(View.VISIBLE);
+
                 Picasso picasso = new Picasso.Builder(main).downloader(new OkHttpDownloader(okHttpClient)).build();
-               
-                picasso.load(task.iconUrl).into(icon, new Callback() {
+
+                Target target = new Target() {
                     @Override
-                    public void onSuccess() {
-                        Log.d("", "");
+                    public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                        icon.setImageBitmap(bitmap);
+                        Utils.saveImage(main, bitmap, task.imgs.get(Task.ImgType.ICON));
+                        loadingBar.setVisibility(View.INVISIBLE);
                     }
 
                     @Override
-                    public void onError() {
-                        Log.d("", "");
+                    public void onBitmapFailed(Drawable errorDrawable) {
+                        loadingBar.setVisibility(View.INVISIBLE);
                     }
-                });
+
+                    @Override
+                    public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+                    }
+                };
+
+                picasso.load(task.imgs.get(Task.ImgType.ICON).url).into(target);
             }
         }
 
         @Override
         public void onClick(View v) {
+            main.getPageController().setPage(PageController.Page.TASK);
         }
     }
 

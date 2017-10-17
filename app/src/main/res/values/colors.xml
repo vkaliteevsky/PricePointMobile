@@ -13,4 +13,7 @@
 
     <color name="orderPageBGColor">#f9fafb</color>
     <color name="secondPriceColor">#b3b3b3</color>
+
+    <color name="bgColor1">#F77062</color>
+    <color name="bgColor2">#FE5196</color>
 </resources>

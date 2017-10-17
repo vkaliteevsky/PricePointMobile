@@ -3,7 +3,9 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="@dimen/orderItemMargin"
+    android:layout_marginLeft="@dimen/orderItemMargin"
+    android:layout_marginRight="@dimen/orderItemMargin"
+    android:layout_marginBottom="@dimen/orderPageSpace"
     android:elevation="2dp"
     android:background="@android:color/white">
 
@@ -165,7 +167,7 @@
                     android:id="@+id/completeTasksCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="457"
+                    android:text="4"
                     android:layout_marginBottom="@dimen/orderValuesSpace"
                     android:textColor="@color/orderValuesColor" />
 

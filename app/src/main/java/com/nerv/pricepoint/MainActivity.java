@@ -1,7 +1,10 @@
 package com.nerv.pricepoint;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.content.Intent;
@@ -35,6 +38,65 @@ public class MainActivity extends AppCompatActivity {
 
     private DatabaseManager databaseManager;
     private PageController pageController;
+    private boolean hasPermissions = Build.VERSION.SDK_INT < Build.VERSION_CODES.M;
+
+
+    public boolean hasPermissions(String[] permissions) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && permissions != null) {
+            for (String permission : permissions) {
+                if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case 111: {
+                hasPermissions = true;
+                for (int i = 0; i < permissions.length; i++) {
+                    if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                        System.out.println("Permissions --> " + "Permission Granted: " + permissions[i]);
+
+                    } else if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                        System.out.println("Permissions --> " + "Permission Denied: " + permissions[i]);
+                        hasPermissions = false;
+                    }
+                }
+
+                if (hasPermissions) {
+                    finish();
+                    startActivity(getIntent());
+                } else {
+                    finish();
+                    //android.os.Process.killProcess(android.os.Process.myPid());
+                }
+            }
+            break;
+            default: {
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            }
+        }
+    }
+
+    private void checkPermissions() {
+        if (!hasPermissions) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                String[] PERMISSIONS = {Manifest.permission.INTERNET
+                        , Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.ACCESS_WIFI_STATE
+                        , Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+
+                if (!hasPermissions(PERMISSIONS)) {
+                    requestPermissions(PERMISSIONS, 111);
+                } else {
+                    hasPermissions = true;
+                }
+            }
+        }
+    }
 
     private DatabaseManager.AuthCallback authCallback = new DatabaseManager.AuthCallback() {
         @Override
@@ -56,6 +118,15 @@ public class MainActivity extends AppCompatActivity {
 
         if (!databaseManager.silentConnect(authCallback)) {
             databaseManager.interactiveConnect(authCallback);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (!hasPermissions) {
+            checkPermissions();
         }
     }
 
