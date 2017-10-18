@@ -22,4 +22,6 @@
     <dimen name="orderPageSpace">10dp</dimen>
     <dimen name="taskValuesSpace">2dp</dimen>
 
+    <dimen name="overlapMargin">-20dp</dimen>
+
 </resources>
