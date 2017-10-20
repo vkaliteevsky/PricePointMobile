@@ -6,6 +6,7 @@ package com.nerv.pricepoint;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.icu.util.Currency;
@@ -47,7 +48,7 @@ import java.util.Locale;
  * Created by NERV on 11.10.2017.
  */
 
-public class OrderPageFragment extends CustomFragment {
+public class OrderPageFragment extends CustomFragment implements View.OnClickListener {
 
     private static class TaskHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
@@ -60,6 +61,7 @@ public class OrderPageFragment extends CustomFragment {
 
         private Task task;
         private MainActivity main;
+        Target target;
 
         public void init(MainActivity main) {
             this.main = main;
@@ -104,7 +106,7 @@ public class OrderPageFragment extends CustomFragment {
 
                 Picasso picasso = new Picasso.Builder(main).downloader(new OkHttpDownloader(okHttpClient)).build();
 
-                Target target = new Target() {
+                target = new Target() {
                     @Override
                     public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
                         icon.setImageBitmap(bitmap);
@@ -166,6 +168,10 @@ public class OrderPageFragment extends CustomFragment {
     private MainActivity main;
     private RecyclerView tasksRV;
     private TaskRecyclerAdapter taskRecyclerAdapter;
+    private View leftSideMenu;
+    private View rightSideMenu;
+    private int screenWidth;
+    private View tasksLayout;
 
     @Override
     public void init(MainActivity main) {
@@ -182,6 +188,20 @@ public class OrderPageFragment extends CustomFragment {
         taskRecyclerAdapter = new TaskRecyclerAdapter(main);
         tasksRV.setAdapter(taskRecyclerAdapter);
 
+        Point size = new Point();
+        main.getWindowManager().getDefaultDisplay().getSize(size);
+        screenWidth = size.x;
+
+        leftSideMenu = view.findViewById(R.id.leftSideMenu);
+        rightSideMenu = view.findViewById(R.id.rightSideMenu);
+        rightSideMenu.getLayoutParams().width = (int) (screenWidth * 0.7f);
+
+        tasksLayout = view.findViewById(R.id.tasksLayout);
+        tasksLayout.getLayoutParams().width = screenWidth;
+
+        view.findViewById(R.id.leftSideMenuBtn).setOnClickListener(this);
+        view.findViewById(R.id.rightSideMenuBtn).setOnClickListener(this);
+
         return view;
     }
 
@@ -191,6 +211,27 @@ public class OrderPageFragment extends CustomFragment {
 
         tasksRV = null;
         taskRecyclerAdapter = null;
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.leftSideMenuBtn:
+                if (leftSideMenu.getVisibility() == View.GONE) {
+                    Utils.expand(leftSideMenu, (int) (screenWidth * 0.7f));
+                } else {
+                    Utils.collapse(leftSideMenu);
+                }
+                break;
+            case R.id.rightSideMenuBtn:
+                float tx = tasksLayout.getTranslationX();
+                if (Math.abs(tasksLayout.getTranslationX()) > 0) {
+                    Utils.translateBack(tasksLayout);
+                } else {
+                    Utils.translate(tasksLayout, (int) (screenWidth * 0.7f));
+                }
+                break;
+        }
     }
 }
 

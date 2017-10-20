@@ -1,267 +1,292 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_gradient">
+    android:animateLayoutChanges="true"
+    android:background="@android:color/white">
 
-    <RelativeLayout
-        android:layout_marginTop="@dimen/pageTitleMarginTop"
-        android:layout_marginBottom="@dimen/pageTitleMarginBottomOrderPage"
+    <ScrollView
+        android:layout_alignParentTop="true"
+        android:layout_above="@+id/saveBtn"
+
         android:layout_width="match_parent"
-        android:layout_height="@dimen/pageTitleSize">
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/category"
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:textColor="@android:color/white"
-            android:text="ТОВАР"
-            android:textSize="13sp"
-            android:layout_gravity="center"
-            android:layout_centerInParent="true"
-            android:gravity="center"/>
-
-        <ImageButton
-            android:id="@+id/cancelBtn"
-            android:layout_width="@dimen/pageTitleSize"
-            android:layout_height="@dimen/pageTitleSize"
-            android:layout_marginLeft="@dimen/sideMenuMargin"
-            android:background="@android:color/white"/>
-
-        <ImageButton
-            android:id="@+id/noGoodsBtn"
-            android:layout_width="@dimen/pageTitleSize"
-            android:layout_height="@dimen/pageTitleSize"
-            android:layout_marginRight="@dimen/sideMenuMargin"
-            android:layout_alignParentRight="true"
-            android:background="@android:color/white"/>
-
-    </RelativeLayout>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:weightSum="2"
-        android:padding="@dimen/orderItemMargin"
-        android:background="@android:color/transparent"
-        android:layout_marginBottom="@dimen/pageTitleMarginBottomOrderPage"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true">
-
-        <ImageView
-            android:layout_weight="0"
-            android:id="@+id/goodsIcon"
-            android:layout_width="72dp"
-            android:layout_height="88dp"
-            android:background="@android:color/white"/>
-
-        <RelativeLayout
-            android:layout_weight="0.9"
-            android:paddingRight="2dp"
-            android:paddingLeft="2dp"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <com.nerv.pricepoint.AutoResizeTextView
-                android:id="@+id/description"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:text="Молоко Простоквашино пастеризованное 3.2%, 0.93 л"
-                android:maxLines="5"
-                android:textColor="@color/orderValuesColor"/>
-
-            <com.nerv.pricepoint.AutoResizeTextView
-                android:id="@+id/ean"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="5 11111 2222222"
-                android:maxLines="1"
-                android:textSize="12sp"
-                android:layout_alignParentBottom="true"
-                android:textColor="@color/etBottomLineColor"/>
-
-        </RelativeLayout>
-    </LinearLayout>
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/white">
-
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:background="@drawable/bg_gradient">
 
             <RelativeLayout
-                android:id="@+id/pricesPhotosLayout"
+                android:layout_marginTop="20dp"
+                android:layout_width="match_parent"
+                android:layout_height="50dp">
+
+                <TextView
+                    android:id="@+id/category"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textColor="@android:color/white"
+                    android:text="ТОВАР"
+                    android:textSize="13sp"
+                    android:layout_gravity="center"
+                    android:layout_centerInParent="true"
+                    android:gravity="center"/>
+
+
+                <ImageButton
+                    android:id="@+id/cancelBtn"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/close"
+                    android:background="@android:color/transparent"/>
+
+
+                <ImageButton
+                    android:id="@+id/noGoodsBtn"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentRight="true"
+                    android:src="@drawable/noproduct"
+                    android:background="@android:color/transparent"/>
+
+            </RelativeLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:animateLayoutChanges="true">
+                android:weightSum="2"
+                android:padding="@dimen/orderItemMargin"
+                android:background="@android:color/transparent"
+                android:layout_marginBottom="@dimen/pageTitleMarginBottomOrderPage"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentStart="true">
 
-                <LinearLayout
-                    android:id="@+id/prices"
-                    android:orientation="vertical"
+                <ImageView
+                    android:layout_weight="0"
+                    android:id="@+id/goodsIcon"
+                    android:layout_width="72dp"
+                    android:layout_height="88dp"
+                    android:background="@android:color/white"/>
+
+                <RelativeLayout
+                    android:layout_weight="0.9"
+                    android:paddingRight="2dp"
+                    android:paddingLeft="2dp"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:animateLayoutChanges="true">
+                    android:layout_height="match_parent">
 
-                    <LinearLayout
-                        android:orientation="vertical"
+                    <com.nerv.pricepoint.AutoResizeTextView
+                        android:id="@+id/description"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:text="Молоко Простоквашино пастеризованное 3.2%, 0.93 л"
+                        android:maxLines="5"
+                        android:textColor="@color/orderValuesColor"/>
+
+                    <com.nerv.pricepoint.AutoResizeTextView
+                        android:id="@+id/ean"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/orderItemMargin"
-                        android:layout_marginBottom="@dimen/orderItemMargin"
-                        android:layout_marginLeft="@dimen/orderItemMargin"
-                        android:layout_marginRight="@dimen/orderItemMargin"
-                        android:elevation="2dp"
-                        android:animateLayoutChanges="true"
-                        android:background="@drawable/bg_wo_outline">
+                        android:text="5 11111 2222222"
+                        android:maxLines="1"
+                        android:textSize="12sp"
+                        android:layout_alignParentBottom="true"
+                        android:textColor="@color/etBottomLineColor"/>
 
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="50dp"
-                            android:elevation="0dp"
-                            android:background="@drawable/bg_w_outline">
+                </RelativeLayout>
+            </LinearLayout>
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                android:textSize="16sp"
-                                android:gravity="center"
-                                android:layout_marginLeft="15dp"
-                                android:textColor="@android:color/black"
-                                android:text="Цена"/>
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/white">
 
-                        </RelativeLayout>
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="50dp"
-                            android:elevation="0dp"
-                            android:background="@drawable/bg_w_outline">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                android:textSize="16sp"
-                                android:gravity="center"
-                                android:layout_marginLeft="15dp"
-                                android:textColor="@android:color/black"
-                                android:text="Цена по карте"/>
-
-                        </RelativeLayout>
+                <RelativeLayout
+                        android:id="@+id/pricesPhotosLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:animateLayoutChanges="true">
 
                         <LinearLayout
+                            android:id="@+id/prices"
                             android:orientation="vertical"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:animateLayoutChanges="true">
 
-                            <RelativeLayout
+                            <LinearLayout
+                                android:orientation="vertical"
                                 android:layout_width="match_parent"
-                                android:layout_height="50dp"
-                                android:elevation="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/orderItemMargin"
+                                android:layout_marginBottom="@dimen/orderItemMargin"
+                                android:layout_marginLeft="@dimen/orderItemMargin"
+                                android:layout_marginRight="@dimen/orderItemMargin"
+                                android:elevation="2dp"
+                                android:animateLayoutChanges="true"
                                 android:background="@drawable/bg_wo_outline">
 
-                                <LinearLayout
-                                    android:id="@+id/promoBtn"
-                                    android:clickable="true"
-                                    android:orientation="vertical"
-                                    android:layout_centerVertical="true"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content">
+                                <RelativeLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="50dp"
+                                    android:elevation="0dp"
+                                    android:background="@drawable/bg_w_outline">
+
                                     <TextView
                                         android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
+                                        android:layout_height="match_parent"
                                         android:textSize="16sp"
                                         android:gravity="center"
                                         android:layout_marginLeft="15dp"
                                         android:textColor="@android:color/black"
-                                        android:text="Цена по акции"/>
+                                        android:text="Цена"/>
+
+                                </RelativeLayout>
+
+                                <RelativeLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="50dp"
+                                    android:elevation="0dp"
+                                    android:background="@drawable/bg_w_outline">
 
                                     <TextView
                                         android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:textSize="12sp"
+                                        android:layout_height="match_parent"
+                                        android:textSize="16sp"
                                         android:gravity="center"
                                         android:layout_marginLeft="15dp"
                                         android:textColor="@android:color/black"
-                                        android:text="«11111111111»"/>
+                                        android:text="Цена по карте"/>
+
+                                </RelativeLayout>
+
+                                <LinearLayout
+                                    android:id="@+id/promoLayout"
+                                    android:orientation="vertical"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content">
+
+                                    <RelativeLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="50dp"
+                                        android:elevation="0dp"
+                                        android:background="@drawable/bg_wo_outline">
+
+                                        <LinearLayout
+                                            android:id="@+id/promoBtn"
+                                            android:clickable="true"
+                                            android:orientation="vertical"
+                                            android:layout_centerVertical="true"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content">
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:textSize="16sp"
+                                                android:gravity="center"
+                                                android:layout_marginLeft="15dp"
+                                                android:textColor="@android:color/black"
+                                                android:text="Цена по акции"/>
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:textSize="12sp"
+                                                android:gravity="center"
+                                                android:layout_marginLeft="15dp"
+                                                android:textColor="@android:color/black"
+                                                android:text="«11111111111»"/>
+                                        </LinearLayout>
+                                    </RelativeLayout>
+
+                                    <LinearLayout
+                                        android:id="@+id/promoTypes"
+                                        android:visibility="gone"
+                                        android:orientation="vertical"
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content">
+
+                                        <android.support.v7.widget.RecyclerView
+                                            android:id="@+id/promosRV"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"/>
+
+                                        <LinearLayout
+                                            android:id="@+id/commentBtn"
+                                            android:orientation="horizontal"
+                                            android:layout_gravity="right"
+                                            android:layout_marginRight="7.5dp"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="30dp"
+                                            android:layout_marginTop="5dp"
+                                            android:layout_marginBottom="5dp">
+
+                                            <ImageView
+                                                android:layout_width="30dp"
+                                                android:layout_height="30dp"
+                                                android:background="@android:color/holo_green_dark"/>
+
+                                            <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="match_parent"
+                                                android:textColor="@android:color/black"
+                                                android:textSize="10sp"
+                                                android:gravity="center"
+                                                android:text="ДОБАВИТЬ КОММЕНТАРИЙ"/>
+
+                                        </LinearLayout>
+                                    </LinearLayout>
+
                                 </LinearLayout>
-                            </RelativeLayout>
-
-                            <android.support.v7.widget.RecyclerView
-                                android:id="@+id/promosRV"
-                                android:visibility="gone"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"/>
-
-                            <LinearLayout
-                                android:id="@+id/commentBtn"
-                                android:visibility="gone"
-                                android:orientation="horizontal"
-                                android:layout_gravity="right"
-                                android:layout_marginRight="7.5dp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="30dp"
-                                android:layout_marginTop="5dp"
-                                android:layout_marginBottom="5dp">
-
-                                <ImageView
-                                    android:layout_width="30dp"
-                                    android:layout_height="30dp"
-                                    android:background="@android:color/holo_green_dark"/>
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="match_parent"
-                                    android:textColor="@android:color/black"
-                                    android:textSize="10sp"
-                                    android:gravity="center"
-                                    android:text="ДОБАВИТЬ КОММЕНТАРИЙ"/>
 
                             </LinearLayout>
 
+                            <me.crosswall.lib.coverflow.core.PagerContainer
+                                android:id="@+id/photosPC"
+                                android:clipChildren="false"
+                                android:layerType="hardware"
+                                android:layout_width="match_parent"
+                                android:layout_height="200dp"
+                                android:fadeScrollbars="false"
+                                android:overScrollMode="never"
+                                android:background="@drawable/bg_wo_outline">
+
+                                <android.support.v4.view.ViewPager
+                                    android:id="@+id/overlapPager"
+                                    android:layout_width="280dp"
+                                    android:layout_height="180dp"
+                                    android:layout_gravity="center"
+                                    android:fadeScrollbars="false"
+                                    android:overScrollMode="never"
+                                    android:background="@drawable/bg_wo_outline"/>
+                            </me.crosswall.lib.coverflow.core.PagerContainer>
 
                         </LinearLayout>
 
-                    </LinearLayout>
+                    </RelativeLayout>
 
-                    <me.crosswall.lib.coverflow.core.PagerContainer
-                        android:id="@+id/photosPC"
-                        android:clipChildren="false"
-                        android:layerType="hardware"
-                        android:layout_width="match_parent"
-                        android:layout_height="200dp"
-                        android:animateLayoutChanges="true"
-                        android:background="@drawable/bg_wo_outline">
-                        <android.support.v4.view.ViewPager
-                            android:id="@+id/overlapPager"
-                            android:layout_width="280dp"
-                            android:layout_height="180dp"
-                            android:layout_gravity="center"
-                            android:background="@drawable/bg_wo_outline"/>
-                    </me.crosswall.lib.coverflow.core.PagerContainer>
+            </FrameLayout>
 
-                </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 
-                <!--<com.bartoszlipinski.flippablestackview.FlippableStackView
-                    android:layout_below="@id/prices"
-                    android:id="@+id/photosSV"
-                    android:layout_width="match_parent"
-                    android:layout_height="300dp"
-                    android:layout_marginTop="-50dp"
-                    android:background="@android:color/transparent"/>-->
-
-            </RelativeLayout>
-
-        </ScrollView>
-
-    </FrameLayout>
+    <Button
+        android:id="@+id/saveBtn"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:background="@drawable/bg_gradient"
+        android:text="СОХРАНИТЬ"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:layout_height="50dp" />
+</RelativeLayout>
 
 
-</LinearLayout>
+<!---->
+

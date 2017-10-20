@@ -1,71 +1,163 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bgColor">
+    android:background="@android:color/white">
 
     <RelativeLayout
-        android:layout_marginTop="@dimen/pageTitleMarginTop"
-        android:layout_marginBottom="@dimen/pageTitleMarginBottomOrderPage"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/pageTitleSize">
+        android:id="@+id/leftSideMenu"
+        android:visibility="gone"
+        android:orientation="vertical"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_gradient">
 
         <TextView
-            android:id="@+id/category"
+            android:id="@+id/categoriesTitle"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="@dimen/pageTitleSize"
             android:textColor="@android:color/white"
             android:text="ВСЕ"
-            android:textSize="13sp"
-            android:layout_gravity="center"
-            android:layout_centerInParent="true"
-            android:gravity="center"/>
+            android:layout_marginTop="@dimen/pageTitleMarginTop"
+            android:layout_marginBottom="@dimen/pageTitleMarginBottomOrderPage"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:layout_alignParentTop="true"/>
 
-        <ImageButton
-            android:id="@+id/leftSideMenuBtn"
-            android:layout_width="@dimen/pageTitleSize"
-            android:layout_height="@dimen/pageTitleSize"
-            android:layout_marginLeft="@dimen/sideMenuMargin"
-            android:background="@android:color/white"/>
+        <android.support.v7.widget.RecyclerView
+            android:layout_below="@id/categoriesTitle"
+            android:id="@+id/categoryRV"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        </android.support.v7.widget.RecyclerView>
 
-        <ImageButton
-            android:id="@+id/rightSideMenuBtn"
-            android:layout_width="@dimen/pageTitleSize"
-            android:layout_height="@dimen/pageTitleSize"
-            android:layout_marginRight="@dimen/sideMenuMargin"
-            android:layout_alignParentRight="true"
-            android:background="@android:color/white"/>
+        <LinearLayout
+            android:layout_alignParentBottom="true"
+            android:orientation="horizontal"
+            android:id="@+id/backToTasksBtn"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:paddingLeft="20dp"
+            android:clickable="true"
+            android:background="@android:color/transparent">
+
+            <ImageView
+                android:layout_width="8dp"
+                android:layout_height="12dp"
+                android:src="@drawable/back"
+                android:layout_gravity="center_vertical"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:textSize="12sp"
+                android:layout_marginLeft="5dp"
+                android:textColor="@android:color/white"
+                android:text="К ЗАКАЗАМ"/>
+
+
+        </LinearLayout>
 
     </RelativeLayout>
 
-    <FrameLayout
+    <LinearLayout
+        android:id="@+id/tasksLayout"
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/orderPageBGColor">
+        android:layout_height="match_parent">
 
-        <EditText
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_gradient">
+
+            <RelativeLayout
+                android:layout_marginTop="@dimen/pageTitleMarginTop"
+                android:layout_width="match_parent"
+                android:layout_height="50dp">
+
+                <TextView
+                    android:id="@+id/category"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textColor="@android:color/white"
+                    android:text="ВСЕ"
+                    android:textSize="13sp"
+                    android:layout_gravity="center"
+                    android:layout_centerInParent="true"
+                    android:gravity="center"/>
+
+                <ImageButton
+                    android:id="@+id/leftSideMenuBtn"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/menu"
+                    android:background="@android:color/transparent"/>
+
+                <ImageButton
+                    android:id="@+id/rightSideMenuBtn"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/filter"
+                    android:background="@android:color/transparent"/>
+
+            </RelativeLayout>
+        </FrameLayout>
+
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:elevation="2dp"
             android:layout_marginTop="@dimen/orderPageSpace"
-            android:layout_marginBottom="@dimen/orderPageSpace"
+            android:layout_marginBottom="5dp"
             android:layout_marginLeft="@dimen/orderItemMargin"
             android:layout_marginRight="@dimen/orderItemMargin"
-            android:elevation="2dp"
-            android:maxLines="1"
-            android:lines="1"
-            android:textColorHint="@color/etHintColor"
-            android:hint="Поиск"
-            android:inputType="text"
-            android:textColor="@android:color/black"
-            android:background="@android:color/white"/>
-    </FrameLayout>
+            android:background="@drawable/bg_wo_outline">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/tasksRV"
-        android:layout_width="match_parent"
+
+            <ImageButton
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:src="@drawable/search"
+                android:background="@android:color/white"/>
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:maxLines="1"
+                android:lines="1"
+                android:textColorHint="@color/etHintColor"
+                android:hint="Поиск"
+                android:inputType="text"
+                android:textColor="@android:color/black"
+                android:background="@android:color/white"/>
+
+        </LinearLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/tasksRV"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/white">
+        </android.support.v7.widget.RecyclerView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rightSideMenu"
+        android:visibility="visible"
+        android:orientation="vertical"
+        android:layout_width="1dp"
         android:layout_height="match_parent"
-        android:background="@color/orderPageBGColor">
-    </android.support.v7.widget.RecyclerView>
+        android:background="@android:color/holo_purple">
 
+    </LinearLayout>
 
 </LinearLayout>

@@ -35,6 +35,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
+    private static String[] PERMISSIONS = {Manifest.permission.INTERNET
+            , Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.ACCESS_WIFI_STATE
+            , Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
 
     private DatabaseManager databaseManager;
     private PageController pageController;
@@ -85,10 +88,6 @@ public class MainActivity extends AppCompatActivity {
     private void checkPermissions() {
         if (!hasPermissions) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                String[] PERMISSIONS = {Manifest.permission.INTERNET
-                        , Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.ACCESS_WIFI_STATE
-                        , Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
-
                 if (!hasPermissions(PERMISSIONS)) {
                     requestPermissions(PERMISSIONS, 111);
                 } else {
@@ -108,16 +107,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
-        pageController = new PageController(this);
+        hasPermissions = hasPermissions(PERMISSIONS);
 
-        databaseManager = new DatabaseManager(this);
+        if (hasPermissions) {
+            pageController = new PageController(this);
 
-        FragmentManager.init(this);
+            databaseManager = new DatabaseManager(this);
 
-        if (!databaseManager.silentConnect(authCallback)) {
-            databaseManager.interactiveConnect(authCallback);
+            FragmentManager.init(this);
+
+            if (!databaseManager.silentConnect(authCallback)) {
+                databaseManager.interactiveConnect(authCallback);
+            }
         }
     }
 

@@ -10,6 +10,11 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
+import android.widget.LinearLayout;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -57,7 +62,7 @@ public class Utils {
 
         request.setRetryPolicy(new DefaultRetryPolicy(
                 3000,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                2,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         queue.add(request);
     }
@@ -195,5 +200,97 @@ public class Utils {
         SaveTaskImageRunnable r = new SaveTaskImageRunnable(context, imgToSave, img);
         Thread t = new Thread(r);
         t.start();
+    }
+
+    public static void expand(final View v, final int targetWidth) {
+        // Older versions of android (pre API 21) cancel animations for views with a height of 0.
+        v.getLayoutParams().width = 1;
+        v.setVisibility(View.VISIBLE);
+        Animation a = new Animation()
+        {
+            @Override
+            protected void applyTransformation(float interpolatedTime, Transformation t) {
+                v.getLayoutParams().width = (int)(targetWidth * interpolatedTime);
+
+                v.requestLayout();
+            }
+
+            @Override
+            public boolean willChangeBounds() {
+                return true;
+            }
+        };
+
+        // 1dp/ms
+        a.setDuration((int)(targetWidth / v.getContext().getResources().getDisplayMetrics().density));
+        v.startAnimation(a);
+    }
+
+    public static void collapse(final View v) {
+        final int initialWidth = v.getMeasuredWidth();
+
+        Animation a = new Animation()
+        {
+            @Override
+            protected void applyTransformation(float interpolatedTime, Transformation t) {
+                if(interpolatedTime == 1){
+                    v.setVisibility(View.GONE);
+                }else{
+                    v.getLayoutParams().width = initialWidth - (int)(initialWidth * interpolatedTime);
+                    v.requestLayout();
+                }
+            }
+
+            @Override
+            public boolean willChangeBounds() {
+                return true;
+            }
+        };
+
+        // 1dp/ms
+        a.setDuration((int)(initialWidth / v.getContext().getResources().getDisplayMetrics().density));
+        v.startAnimation(a);
+    }
+
+    public static void translate(final View v, final int targetTranslation) {
+        Animation a = new Animation()
+        {
+            @Override
+            protected void applyTransformation(float interpolatedTime, Transformation t) {
+                v.setTranslationX(-(int)(targetTranslation * interpolatedTime));
+                v.requestLayout();
+            }
+
+            @Override
+            public boolean willChangeBounds() {
+                return true;
+            }
+        };
+
+        // 1dp/ms
+        a.setDuration((int)(targetTranslation / v.getContext().getResources().getDisplayMetrics().density));
+        v.startAnimation(a);
+    }
+
+    public static void translateBack(final View v) {
+        final int initialTranslation = (int) v.getTranslationX();
+
+        Animation a = new Animation()
+        {
+            @Override
+            protected void applyTransformation(float interpolatedTime, Transformation t) {
+                v.setTranslationX(initialTranslation - (int)(initialTranslation * interpolatedTime));
+                v.requestLayout();
+            }
+
+            @Override
+            public boolean willChangeBounds() {
+                return true;
+            }
+        };
+
+        // 1dp/ms
+        a.setDuration((int)(Math.abs(initialTranslation) / v.getContext().getResources().getDisplayMetrics().density));
+        v.startAnimation(a);
     }
 }

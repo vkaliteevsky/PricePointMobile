@@ -1,6 +1,7 @@
 package com.nerv.pricepoint;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -8,13 +9,14 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 /**
  * Created by NERV on 11.10.2017.
  */
 
-public class OrdersPageFragment extends CustomFragment {
+public class OrdersPageFragment extends CustomFragment implements View.OnClickListener {
 
     private static class OrderHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         private TextView orderNumber;
@@ -113,6 +115,8 @@ public class OrdersPageFragment extends CustomFragment {
     private MainActivity main;
     private RecyclerView ordersRV;
     private OrderRecyclerAdapter orderRecyclerAdapter;
+    private View leftSideMenu;
+    private int screenWidth;
 
     @Override
     public void init(MainActivity main) {
@@ -129,6 +133,16 @@ public class OrdersPageFragment extends CustomFragment {
         orderRecyclerAdapter = new OrderRecyclerAdapter(main);
         ordersRV.setAdapter(orderRecyclerAdapter);
 
+        view.findViewById(R.id.leftSideMenuBtn).setOnClickListener(this);
+
+        Point size = new Point();
+        main.getWindowManager().getDefaultDisplay().getSize(size);
+        screenWidth = size.x;
+
+        leftSideMenu = view.findViewById(R.id.leftSideMenu);
+
+        view.findViewById(R.id.ordersLayout).getLayoutParams().width = screenWidth;
+
         return view;
     }
 
@@ -138,6 +152,20 @@ public class OrdersPageFragment extends CustomFragment {
 
         ordersRV = null;
         orderRecyclerAdapter = null;
+        leftSideMenu = null;
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.leftSideMenuBtn:
+                if (leftSideMenu.getVisibility() == View.GONE) {
+                    Utils.expand(leftSideMenu, (int) (screenWidth * 0.7f));
+                } else {
+                    Utils.collapse(leftSideMenu);
+                }
+                break;
+        }
     }
 }
 

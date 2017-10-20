@@ -1,7 +1,10 @@
 package com.nerv.pricepoint;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.LayoutTransition;
 import android.content.Context;
+import android.graphics.Point;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -140,36 +143,6 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
         }
     }
 
-    private class MyPagerAdapter extends PagerAdapter {
-
-        LayoutInflater inflater;
-
-        public MyPagerAdapter(Context context) {
-            inflater = LayoutInflater.from(context);
-        }
-
-        @Override
-        public Object instantiateItem(ViewGroup container, int position) {
-            View view = inflater.inflate(R.layout.sv_photos_item,null);
-            container.addView(view);
-            return view;
-        }
-
-        @Override
-        public void destroyItem(ViewGroup container, int position, Object object) {
-            container.removeView((View)object);
-        }
-
-        @Override
-        public int getCount() {
-            return 4;
-        }
-
-        @Override
-        public boolean isViewFromObject(View view, Object object) {
-            return (view == object);
-        }
-    }
 
     private View view;
     private View commentBtn;
@@ -205,11 +178,8 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
             fs.add(new PhotoItemFragment());
         }
 
-        /*photosSV = (FlippableStackView) view.findViewById(R.id.photosSV);
-        photosSV.initStack(4, StackPageTransformer.Orientation.HORIZONTAL, 0.53f, 0.46f, 0.46f, StackPageTransformer.Gravity.CENTER);
-        photosSV.setAdapter(new PhotoItemFragmentAdapter(main.getSupportFragmentManager(), fs));*/
 
-        pc =  (PagerContainer) view.findViewById(R.id.photosPC);
+        pc = (PagerContainer) view.findViewById(R.id.photosPC);
         pc.setOverlapEnabled(true);
         pc.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
@@ -217,6 +187,17 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
         final ViewPager pager = pc.getViewPager();
         pager.setOffscreenPageLimit(4);
         pager.setAdapter(new PhotoItemFragmentAdapter(main.getSupportFragmentManager(), fs));
+
+        ViewGroup.LayoutParams params = pager.getLayoutParams();
+        Point size = new Point();
+        main.getWindowManager().getDefaultDisplay().getSize(size);
+        params.width = (int) (size.x * 0.8);
+        params.height = (int) (0.6 * params.width);
+        pager.setLayoutParams(params);
+
+        params = pc.getLayoutParams();
+        params.height = (int) (size.x * 0.8 * 0.6 * 1.1);
+        pc.setLayoutParams(params);
 
         new CoverFlow.Builder().with(pager)
                 .scale(0.3f)
@@ -228,20 +209,6 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
         LinearLayout pricesLayout = (LinearLayout) view.findViewById(R.id.prices);
         LayoutTransition lt = pricesLayout.getLayoutTransition();
         lt.enableTransitionType(LayoutTransition.CHANGING);
-
-        /*pager.post(new Runnable() {
-            @Override public void run() {
-                RelativeLayout v = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
-                ViewCompat.setElevation(v, 8.0f);
-            }
-        });*/
-
-        /*pager.post(new Runnable() {
-            @Override public void run() {
-                RelativeLayout view = (RelativeLayout) pager.getAdapter().instantiateItem(pager, 0);
-                ViewCompat.setElevation(view, 8.0f);
-            }
-        });*/
 
         return view;
     }
@@ -259,10 +226,9 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.promoBtn:
-                int visibility = promosRV.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE;
-
-                promosRV.setVisibility(visibility);
-                commentBtn.setVisibility(visibility);
+                View promoTypes = view.findViewById(R.id.promoTypes);
+                int visibility = promoTypes.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE;
+                promoTypes.setVisibility(visibility);
                 break;
         }
     }

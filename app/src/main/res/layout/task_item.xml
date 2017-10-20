@@ -4,7 +4,8 @@
     android:layout_height="wrap_content"
     android:layout_marginLeft="@dimen/orderItemMargin"
     android:layout_marginRight="@dimen/orderItemMargin"
-    android:layout_marginBottom="@dimen/orderPageSpace"
+    android:layout_marginBottom="5dp"
+    android:layout_marginTop="5dp"
     android:elevation="2dp"
     android:background="@android:color/white">
 
@@ -68,7 +69,7 @@
             android:layout_weight="1.1"
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
 
             <com.nerv.pricepoint.AutoResizeTextView
                 android:id="@+id/fstPrice"
@@ -96,28 +97,33 @@
                 android:orientation="horizontal"
                 android:layout_gravity="right"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginTop="7dp"
+                android:layout_marginBottom="10dp">
 
                 <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginRight="@dimen/taskValuesSpace"
-                    android:background="@android:color/holo_green_dark"/>
-                <View
+                    android:layout_marginTop="3dp"
+                    android:layout_width="13dp"
+                    android:layout_height="13dp"
+                    android:layout_marginRight="10dp"
+                    android:src="@drawable/comment"/>
+                <ImageView
                     android:id="@+id/photos"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="15dp"
+                    android:layout_height="13dp"
                     android:layout_gravity="right"
-                    android:layout_marginBottom="@dimen/taskValuesSpace"
-                    android:background="@android:color/holo_blue_light"/>
+                    android:src="@drawable/photostaken"/>
             </LinearLayout>
 
             <ImageButton
                 android:id="@+id/status"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
                 android:layout_gravity="right"
-                android:background="@android:color/holo_blue_dark"/>
+                android:foregroundGravity="bottom"
+                android:src="@drawable/refresh"
+                android:scaleType="fitCenter"
+                android:background="@android:color/transparent" />
         </LinearLayout>
 
     </LinearLayout>

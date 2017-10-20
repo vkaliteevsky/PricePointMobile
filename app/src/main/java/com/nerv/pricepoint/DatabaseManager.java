@@ -118,7 +118,7 @@ public class DatabaseManager {
 
         Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.GET
                 , "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('Task')/items" +
-                        "?$filter=task_idman eq " + String.valueOf(userId) + "&$expand=AttachmentFiles"
+                        "?$filter=task_idman%20eq%20" + String.valueOf(userId) + "&$expand=AttachmentFiles"
                 , new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -134,6 +134,7 @@ public class DatabaseManager {
                 , new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        Log.d("","");
                     }
                 });
     }
@@ -162,8 +163,9 @@ public class DatabaseManager {
 
         Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.GET
                 , "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('User')/items" +
-                        "?$filter=user_mail eq '" + login + "'" +
+                        "?$filter=user_mail%20eq%20%27" + login + "%27" +
                         "&$select=user_id,user_pass"
+                //"https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('User')/items?$filter=user_mail%20eq%20%27box@delcom.ru%27&$select=user_id,user_pass"
                 , new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -194,6 +196,7 @@ public class DatabaseManager {
                 , new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        Log.d("", "");
                     }
                 });
     }

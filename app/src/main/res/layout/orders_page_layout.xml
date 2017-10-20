@@ -1,40 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bgColor">
 
-    <FrameLayout
-        android:layout_marginTop="@dimen/pageTitleMarginTop"
-        android:layout_marginBottom="@dimen/pageTitleMarginBottom"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/pageTitleSize">
+    <LinearLayout
+        android:id="@+id/leftSideMenu"
+        android:visibility="gone"
+        android:orientation="vertical"
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="@android:color/holo_purple">
 
-        <TextView
-            android:id="@+id/pageTitle"
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ordersLayout"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <FrameLayout
+            android:layout_marginTop="@dimen/pageTitleMarginTop"
+            android:layout_marginBottom="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="50dp">
+
+            <TextView
+                android:id="@+id/pageTitle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textColor="@android:color/white"
+                android:text="ЗАКАЗЫ"
+                android:textSize="13sp"
+                android:layout_gravity="center"
+                android:gravity="center"/>
+
+            <ImageButton
+                android:id="@+id/leftSideMenuBtn"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_centerVertical="true"
+                android:src="@drawable/menu"
+                android:background="@android:color/transparent"/>
+
+        </FrameLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/ordersRV"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:textColor="@android:color/white"
-            android:text="ЗАКАЗЫ"
-            android:textSize="13sp"
-            android:layout_gravity="center"
-            android:gravity="center"/>
+            android:background="@color/bgColor">
+        </android.support.v7.widget.RecyclerView>
 
-        <ImageButton
-            android:id="@+id/leftSideMenuBtn"
-            android:layout_width="@dimen/pageTitleSize"
-            android:layout_height="@dimen/pageTitleSize"
-            android:layout_marginLeft="@dimen/sideMenuMargin"
-            android:background="@android:color/white"/>
-
-    </FrameLayout>
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/ordersRV"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/bgColor">
-    </android.support.v7.widget.RecyclerView>
-
+    </LinearLayout>
 
 </LinearLayout>
