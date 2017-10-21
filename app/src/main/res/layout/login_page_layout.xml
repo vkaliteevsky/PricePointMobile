@@ -10,11 +10,12 @@
         android:layout_height="@dimen/pageTitleSize"
         android:textColor="@android:color/white"
         android:text="ВХОД"
+        android:letterSpacing="0.15"
         android:textSize="13sp"
         android:layout_marginTop="@dimen/pageTitleMarginTop"
         android:gravity="center"/>
 
-    <TextView
+    <!--<TextView
         android:layout_below="@id/pageTitle"
         android:id="@+id/pricePoint"
         android:layout_width="match_parent"
@@ -22,7 +23,17 @@
         android:text="Price Point"
         android:gravity="center"
         android:textSize="35sp"
-        android:textColor="@android:color/white"/>
+        android:textColor="@android:color/white"/>-->
+
+    <ImageView
+        android:layout_below="@id/pageTitle"
+        android:id="@+id/pricePoint"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:scaleType="fitCenter"
+        android:layout_marginLeft="100dp"
+        android:layout_marginRight="100dp"
+        android:src="@drawable/logo"/>
     
     <LinearLayout
         android:layout_below="@+id/pricePoint"

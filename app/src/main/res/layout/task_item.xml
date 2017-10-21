@@ -52,7 +52,7 @@
                 android:textSize="12sp"
                 android:text="Молоко Простоквашино пастеризованное 3.2%, 0.93 л"
                 android:maxLines="5"
-                android:textColor="@color/orderValuesColor"/>
+                android:textColor="@color/textColor2"/>
 
             <com.nerv.pricepoint.AutoResizeTextView
                 android:id="@+id/ean"
@@ -61,7 +61,7 @@
                 android:text="5 11111 2222222"
                 android:maxLines="1"
                 android:layout_alignParentBottom="true"
-                android:textColor="@color/etBottomLineColor"/>
+                android:textColor="@color/textColor1"/>
 
         </RelativeLayout>
 
@@ -80,7 +80,7 @@
                 android:gravity="right"
                 android:maxLines="1"
                 android:layout_marginBottom="@dimen/taskValuesSpace"
-                android:textColor="@color/bgColor"/>
+                android:textColor="@color/textColor2"/>
 
             <com.nerv.pricepoint.AutoResizeTextView
                 android:id="@+id/sndPrice"
@@ -91,7 +91,7 @@
                 android:textSize="18sp"
                 android:gravity="right"
                 android:layout_marginBottom="@dimen/taskValuesSpace"
-                android:textColor="@color/secondPriceColor"/>
+                android:textColor="@color/textColor1"/>
 
             <LinearLayout
                 android:orientation="horizontal"

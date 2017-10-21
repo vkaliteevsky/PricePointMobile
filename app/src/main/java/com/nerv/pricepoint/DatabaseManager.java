@@ -20,6 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -51,6 +52,9 @@ public class DatabaseManager {
     private final static String RESOURCE = "https://pointbox.sharepoint.com";
     private final static String REDIRECT_URI = "http://pricepointmobile";
     private final static String APP_PREFERENCES = "appSettings";
+    private final static String TASK_FIELDS = "&$select=task_start,task_end,task_retail,task_city,task_address,task_idorder," +
+            "task_mark,GUID,task_costreg,task_costcard,task_costpromo,task_commet,task_lat,task_lon,task_class,task_ean," +
+            "Title,task_photo,task_id,task_edit,task_no,task_done,task_sync";
 
     private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
 
@@ -86,6 +90,7 @@ public class DatabaseManager {
     private String userPassword;
 
     public ArrayList<Order> orders;
+    private HashMap<Integer, Order> ordersHM;
 
     public AuthenticationContext authContext;
     public AuthenticationResult authRes;
@@ -93,6 +98,7 @@ public class DatabaseManager {
     private SharedPreferences appSettings;
 
     public Order selectedOrder;
+    public Task selectedTask;
 
     public DatabaseManager(Activity activity) {
         this.activity = activity;
@@ -116,19 +122,68 @@ public class DatabaseManager {
             return;
         }
 
+        ordersHM = new HashMap<>();
+
         Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.GET
                 , "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('Task')/items" +
-                        "?$filter=task_idman%20eq%20" + String.valueOf(userId) + "&$expand=AttachmentFiles"
+                        "?$filter=task_idman%20eq%20" + String.valueOf(2) + TASK_FIELDS + "&$expand=AttachmentFiles"
                 , new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            orders = Order.getOrders(response.getJSONObject("d").getJSONArray("results"));
+                            JSONObject d = response.getJSONObject("d");
+
+                            Order.getOrders(response.getJSONObject("d").getJSONArray("results"), ordersHM);
+
+                            if (d.has("__next")) {
+                                retrieveUserTasksNext(d.getString("__next"), callback);
+                            } else {
+                                orders = new ArrayList<>(ordersHM.values());
+
+                                for (Order o : orders) {
+                                    o.sortTasksByCategory();
+                                }
+
+                                callback.callback();
+                            }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
+                    }
+                }
+                , new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("","");
+                    }
+                });
+    }
 
-                        callback.callback();
+    private void retrieveUserTasksNext(String url, final Callback callback) {
+        Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.GET, url
+                , new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            JSONObject d = response.getJSONObject("d");
+
+                            Order.getOrders(response.getJSONObject("d").getJSONArray("results"), ordersHM);
+
+                            if (d.has("__next")) {
+                                retrieveUserTasksNext(d.getString("__next"), callback);
+                            } else {
+                                orders = new ArrayList<>(ordersHM.values());
+                                ordersHM = null;
+
+                                for (Order o : orders) {
+                                    o.sortTasksByCategory();
+                                }
+
+                                callback.callback();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
                 , new Response.ErrorListener() {

@@ -24,6 +24,7 @@ import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.StackView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -117,10 +118,22 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
     }
 
     public static class PhotoItemFragment extends Fragment {
+
+        private String name;
+        private Task.ImgType type;
+
+        public void init(String name, Task.ImgType type) {
+            this.name = name;
+            this.type = type;
+        }
+
         @Nullable
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-            return inflater.inflate(R.layout.sv_photos_item, null);
+            View view = inflater.inflate(R.layout.sv_photos_item, null);
+            ((TextView) view.findViewById(R.id.name)).setText(name);
+
+            return view;
         }
     }
 
@@ -143,6 +156,7 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
         }
     }
 
+    private static final String[] PHOTO_NAMES = new String[]{"Ценник", "Товар", "Штрихкод", "Полка"};
 
     private View view;
     private View commentBtn;
@@ -175,8 +189,12 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
         List<Fragment> fs = new ArrayList<>();
 
         for (int i = 0; i < 4; i++) {
-            fs.add(new PhotoItemFragment());
+            PhotoItemFragment f = new PhotoItemFragment();
+
+            f.init(PHOTO_NAMES[i], Task.ImgType.getPhotoType(i));
+            fs.add(f);
         }
+
 
 
         pc = (PagerContainer) view.findViewById(R.id.photosPC);
@@ -210,7 +228,22 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
         LayoutTransition lt = pricesLayout.getLayoutTransition();
         lt.enableTransitionType(LayoutTransition.CHANGING);
 
+        fillGoodsInfo();
+
         return view;
+    }
+
+    private void fillGoodsInfo() {
+        Task task = main.getDatabaseManager().selectedTask;
+
+        ((AutoResizeTextView) view.findViewById(R.id.description)).setText(task.description);
+        ((AutoResizeTextView) view.findViewById(R.id.ean)).setText(task.ean);
+        ((TextView) view.findViewById(R.id.costReg)).setText(task.costReg != 0
+                ? String.valueOf(task.costReg).replace(".", ",") + "\u20BD" : "...");
+        ((TextView) view.findViewById(R.id.costCard)).setText(task.costCard != 0
+                ? String.valueOf(task.costCard).replace(".", ",") + "\u20BD" : "...");
+        ((TextView) view.findViewById(R.id.costPromo)).setText(task.costPromo != 0
+                ? String.valueOf(task.costPromo).replace(".", ",") + "\u20BD" : "...");
     }
 
     @Override

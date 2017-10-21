@@ -33,6 +33,21 @@ public class Task {
             }
         }
 
+        public static ImgType getPhotoType(int v) {
+            switch (v) {
+                case 0:
+                    return PRICE;
+                case 1:
+                    return GOODS;
+                case 2:
+                    return BARCODE;
+                case 3:
+                    return SHELF;
+                default:
+                    return NONE;
+            }
+        }
+
         public String fname(int taskId) {
             String id = String.valueOf(taskId);
 
@@ -89,8 +104,6 @@ public class Task {
     public boolean done;
     public boolean sync;
 
-    public Order order;
-
     public String dbId;
 
     public String category;
@@ -100,7 +113,6 @@ public class Task {
     public Task(JSONObject fields, Order order) {
         try {
             dbId = fields.getString("GUID");
-            this.order = order;
 
             costReg = fields.optDouble("task_costreg", 0);
             costCard = fields.optDouble("task_costcard", 0);

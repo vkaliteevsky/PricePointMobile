@@ -9,14 +9,10 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
-import android.icu.util.Currency;
-import android.media.Image;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,31 +20,30 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.android.volley.VolleyError;
-import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Protocol;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.OkHttpDownloader;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import java.io.File;
 import java.io.IOException;
-import java.net.HttpURLConnection;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Locale;
+import java.util.List;
 
 /**
  * Created by NERV on 11.10.2017.
  */
 
-public class OrderPageFragment extends CustomFragment implements View.OnClickListener {
+interface CategoryControlInterface {
+    void setCategory(String category);
+}
+
+public class OrderPageFragment extends CustomFragment implements View.OnClickListener, CategoryControlInterface {
 
     private static class TaskHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
@@ -90,56 +85,72 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
             sndPrice.setText(task.costCard == 0 ? "..." : String.valueOf(task.costCard).replace(".", ",") + "\u20BD");
 
             if (task.imgs.containsKey(Task.ImgType.ICON)) {
+                Task.Img img = task.imgs.get(Task.ImgType.ICON);
 
-                OkHttpClient okHttpClient = new OkHttpClient().setProtocols(Collections.singletonList(Protocol.HTTP_1_1));;
-                okHttpClient.interceptors().add(new Interceptor() {
-                    @Override
-                    public Response intercept(Chain chain) throws IOException {
-                        Request newRequest = chain.request().newBuilder()
-                                .addHeader("Authorization", "Bearer " + main.getDatabaseManager().authRes.getAccessToken())
-                                .build();
-                        return chain.proceed(newRequest);
-                    }
-                });
-
-                loadingBar.setVisibility(View.VISIBLE);
-
-                Picasso picasso = new Picasso.Builder(main).downloader(new OkHttpDownloader(okHttpClient)).build();
-
-                target = new Target() {
-                    @Override
-                    public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                        icon.setImageBitmap(bitmap);
-                        Utils.saveImage(main, bitmap, task.imgs.get(Task.ImgType.ICON));
-                        loadingBar.setVisibility(View.INVISIBLE);
-                    }
-
-                    @Override
-                    public void onBitmapFailed(Drawable errorDrawable) {
-                        loadingBar.setVisibility(View.INVISIBLE);
-                    }
-
-                    @Override
-                    public void onPrepareLoad(Drawable placeHolderDrawable) {
-
-                    }
-                };
-
-                picasso.load(task.imgs.get(Task.ImgType.ICON).url).into(target);
+                if (img.path.isEmpty()) {
+                    loadIconFromServer(task);
+                } else {
+                    File f = new File(img.path);
+                    Picasso.with(main).load(f).into(icon);
+                }
             }
+        }
+
+        private void loadIconFromServer(final Task targetTask) {
+            OkHttpClient okHttpClient = new OkHttpClient().setProtocols(Collections.singletonList(Protocol.HTTP_1_1));;
+            okHttpClient.interceptors().add(new Interceptor() {
+                @Override
+                public Response intercept(Chain chain) throws IOException {
+                    Request newRequest = chain.request().newBuilder()
+                            .addHeader("Authorization", "Bearer " + main.getDatabaseManager().authRes.getAccessToken())
+                            .build();
+                    return chain.proceed(newRequest);
+                }
+            });
+
+            loadingBar.setVisibility(View.VISIBLE);
+
+            Picasso picasso = new Picasso.Builder(main).downloader(new OkHttpDownloader(okHttpClient)).build();
+
+            target = new Target() {
+                @Override
+                public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                    if (targetTask == task) {
+                        icon.setImageBitmap(bitmap);
+                    }
+
+                    Utils.saveImage(main, bitmap, targetTask.imgs.get(Task.ImgType.ICON));
+                    loadingBar.setVisibility(View.INVISIBLE);
+                }
+
+                @Override
+                public void onBitmapFailed(Drawable errorDrawable) {
+                    loadingBar.setVisibility(View.INVISIBLE);
+                }
+
+                @Override
+                public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+                }
+            };
+
+            picasso.load(task.imgs.get(Task.ImgType.ICON).url).into(target);
         }
 
         @Override
         public void onClick(View v) {
+            main.getDatabaseManager().selectedTask = task;
             main.getPageController().setPage(PageController.Page.TASK);
         }
     }
 
     public static class TaskRecyclerAdapter extends RecyclerView.Adapter<TaskHolder> {
         private MainActivity main;
+        private List<Task> tasks;
 
-        public TaskRecyclerAdapter(MainActivity main) {
+        public TaskRecyclerAdapter(MainActivity main, List<Task> tasks) {
             this.main = main;
+            this.tasks = tasks;
         }
 
         @Override
@@ -154,14 +165,79 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
 
         @Override
         public void onBindViewHolder(TaskHolder holder, int position) {
-            holder.setTask(main.getDatabaseManager().selectedOrder.tasks.get(position));
+            holder.setTask(tasks.get(position)); //holder.setTask(main.getDatabaseManager().selectedOrder.tasks.get(position));
         }
 
         @Override
         public int getItemCount() {
-            return main.getDatabaseManager().selectedOrder.tasks.size();
+            return tasks.size(); //main.getDatabaseManager().selectedOrder.tasks.size();
         }
     }
+
+    private static class CategoryHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+        private String category;
+        private TextView name;
+        private CategoryControlInterface categoryControl;
+
+        public CategoryHolder(View itemView) {
+            super(itemView);
+
+            itemView.setOnClickListener(this);
+
+            name = (TextView) itemView.findViewById(R.id.name);
+        }
+
+        public void init(CategoryControlInterface categoryControl) {
+            this.categoryControl = categoryControl;
+        }
+
+        public void setCategory(String category) {
+            this.category = category;
+            name.setText(category);
+        }
+
+        @Override
+        public void onClick(View v) {
+            categoryControl.setCategory(category);
+        }
+    }
+
+    public static class CategoryRecyclerAdapter extends RecyclerView.Adapter<CategoryHolder> {
+
+        private List<String> categories;
+        private CategoryControlInterface categoryControl;
+
+        public CategoryRecyclerAdapter(List<String> categories, CategoryControlInterface categoryControl) {
+            this.categories = categories;
+            this.categoryControl = categoryControl;
+        }
+
+        @Override
+        public CategoryHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.category_item, parent, false);
+            CategoryHolder holder = new CategoryHolder(view);
+            holder.init(categoryControl);
+
+            return holder;
+        }
+
+        @Override
+        public void onBindViewHolder(CategoryHolder holder, int position) {
+            holder.setCategory(categories.get(position));
+        }
+
+        @Override
+        public int getItemCount() {
+            return categories.size();
+        }
+    }
+
+    private enum SideMenuType {
+        NONE, LEFT, RIGHT
+    }
+
+    private float SIDE_MENU_WIDTH;
 
     private View view;
 
@@ -170,8 +246,10 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
     private TaskRecyclerAdapter taskRecyclerAdapter;
     private View leftSideMenu;
     private View rightSideMenu;
-    private int screenWidth;
     private View tasksLayout;
+    private View space;
+    private TextView categoryName;
+    private SideMenuType openedSideMenu = SideMenuType.NONE;
 
     @Override
     public void init(MainActivity main) {
@@ -185,24 +263,58 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
 
         tasksRV = (RecyclerView) view.findViewById(R.id.tasksRV);
         tasksRV.setLayoutManager(new LinearLayoutManager(main, LinearLayoutManager.VERTICAL, false));
-        taskRecyclerAdapter = new TaskRecyclerAdapter(main);
+        taskRecyclerAdapter = new TaskRecyclerAdapter(main, main.getDatabaseManager().selectedOrder.tasks);
         tasksRV.setAdapter(taskRecyclerAdapter);
 
-        Point size = new Point();
-        main.getWindowManager().getDefaultDisplay().getSize(size);
-        screenWidth = size.x;
-
-        leftSideMenu = view.findViewById(R.id.leftSideMenu);
-        rightSideMenu = view.findViewById(R.id.rightSideMenu);
-        rightSideMenu.getLayoutParams().width = (int) (screenWidth * 0.7f);
-
         tasksLayout = view.findViewById(R.id.tasksLayout);
-        tasksLayout.getLayoutParams().width = screenWidth;
+        categoryName = (TextView) view.findViewById(R.id.category);
+        categoryName.setText("ВСЕ");
+
+        initSideMenus();
 
         view.findViewById(R.id.leftSideMenuBtn).setOnClickListener(this);
         view.findViewById(R.id.rightSideMenuBtn).setOnClickListener(this);
+        view.findViewById(R.id.allCategories).setOnClickListener(this);
 
         return view;
+    }
+
+    private void initSideMenus() {
+        Point size = new Point();
+        main.getWindowManager().getDefaultDisplay().getSize(size);
+        SIDE_MENU_WIDTH = size.x * 0.7f;
+
+        tasksLayout.getLayoutParams().width = size.x;
+
+        leftSideMenu = view.findViewById(R.id.leftSideMenu);
+        leftSideMenu.getLayoutParams().width = (int) SIDE_MENU_WIDTH;
+        leftSideMenu.setTranslationX(-SIDE_MENU_WIDTH);
+
+        RecyclerView categoryRV = (RecyclerView) leftSideMenu.findViewById(R.id.categoryRV);
+        categoryRV.setLayoutManager(new LinearLayoutManager(main, LinearLayoutManager.VERTICAL, false));
+
+        CategoryRecyclerAdapter categoryRecyclerAdapter = new CategoryRecyclerAdapter(
+                new ArrayList<>(main.getDatabaseManager().selectedOrder.categories.keySet()), this);
+        categoryRV.setAdapter(categoryRecyclerAdapter);
+
+        rightSideMenu = view.findViewById(R.id.rightSideMenu);
+        rightSideMenu.getLayoutParams().width = (int) SIDE_MENU_WIDTH;
+        rightSideMenu.setTranslationX(size.x);
+
+        space = view.findViewById(R.id.space);
+        space.setOnClickListener(this);
+    }
+
+    @Override
+    public void setCategory(String category) {
+        categoryName.setText(category);
+
+        taskRecyclerAdapter = new TaskRecyclerAdapter(main, main.getDatabaseManager().selectedOrder.categories.get(category));
+        tasksRV.setAdapter(taskRecyclerAdapter);
+
+        Utils.translateSideMenu(leftSideMenu, tasksLayout, -SIDE_MENU_WIDTH);
+        space.setVisibility(View.GONE);
+        openedSideMenu = SideMenuType.NONE;
     }
 
     @Override
@@ -211,25 +323,48 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
 
         tasksRV = null;
         taskRecyclerAdapter = null;
+        leftSideMenu = null;
+        rightSideMenu = null;
+        tasksLayout = null;
+        space = null;
+        categoryName = null;
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.leftSideMenuBtn:
-                if (leftSideMenu.getVisibility() == View.GONE) {
-                    Utils.expand(leftSideMenu, (int) (screenWidth * 0.7f));
-                } else {
-                    Utils.collapse(leftSideMenu);
-                }
+                Utils.translateSideMenu(leftSideMenu, tasksLayout, SIDE_MENU_WIDTH);
+                openedSideMenu = SideMenuType.LEFT;
+                space.setVisibility(View.VISIBLE);
                 break;
             case R.id.rightSideMenuBtn:
-                float tx = tasksLayout.getTranslationX();
-                if (Math.abs(tasksLayout.getTranslationX()) > 0) {
-                    Utils.translateBack(tasksLayout);
-                } else {
-                    Utils.translate(tasksLayout, (int) (screenWidth * 0.7f));
+                Utils.translateSideMenu(rightSideMenu, tasksLayout, -SIDE_MENU_WIDTH);
+                openedSideMenu = SideMenuType.RIGHT;
+                space.setVisibility(View.VISIBLE);
+                break;
+            case R.id.space:
+                switch (openedSideMenu) {
+                    case LEFT:
+                        Utils.translateSideMenu(leftSideMenu, tasksLayout, -SIDE_MENU_WIDTH);
+                        break;
+                    case RIGHT:
+                        Utils.translateSideMenu(rightSideMenu, tasksLayout, SIDE_MENU_WIDTH);
+                        break;
                 }
+
+                space.setVisibility(View.GONE);
+                openedSideMenu = SideMenuType.NONE;
+                break;
+            case R.id.allCategories:
+                categoryName.setText("ВСЕ");
+
+                taskRecyclerAdapter = new TaskRecyclerAdapter(main, main.getDatabaseManager().selectedOrder.tasks);
+                tasksRV.setAdapter(taskRecyclerAdapter);
+
+                Utils.translateSideMenu(leftSideMenu, tasksLayout, -SIDE_MENU_WIDTH);
+                space.setVisibility(View.GONE);
+                openedSideMenu = SideMenuType.NONE;
                 break;
         }
     }

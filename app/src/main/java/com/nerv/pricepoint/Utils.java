@@ -272,6 +272,32 @@ public class Utils {
         v.startAnimation(a);
     }
 
+    public static void translateSideMenu(final View sideMenu, final View mainView, final float targetTranslation) {
+        final int initialSideMenuTranslation = (int) sideMenu.getTranslationX();
+        final int initialmainViewTranslation = (int) mainView.getTranslationX();
+
+        Animation a = new Animation()
+        {
+            @Override
+            protected void applyTransformation(float interpolatedTime, Transformation t) {
+                sideMenu.setTranslationX(initialSideMenuTranslation + (int)(targetTranslation * interpolatedTime));
+                mainView.setTranslationX(initialmainViewTranslation + (int)(targetTranslation * interpolatedTime));
+
+                sideMenu.requestLayout();
+                mainView.requestLayout();
+            }
+
+            @Override
+            public boolean willChangeBounds() {
+                return true;
+            }
+        };
+
+        // 1dp/ms
+        a.setDuration((int)(Math.abs(targetTranslation) / mainView.getContext().getResources().getDisplayMetrics().density));
+        mainView.startAnimation(a);
+    }
+
     public static void translateBack(final View v) {
         final int initialTranslation = (int) v.getTranslationX();
 

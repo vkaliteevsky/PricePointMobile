@@ -30,6 +30,7 @@
                     android:textColor="@android:color/white"
                     android:text="ТОВАР"
                     android:textSize="13sp"
+                    android:letterSpacing="0.15"
                     android:layout_gravity="center"
                     android:layout_centerInParent="true"
                     android:gravity="center"/>
@@ -71,10 +72,10 @@
                     android:id="@+id/goodsIcon"
                     android:layout_width="72dp"
                     android:layout_height="88dp"
+                    android:layout_marginRight="8dp"
                     android:background="@android:color/white"/>
 
                 <RelativeLayout
-                    android:layout_weight="0.9"
                     android:paddingRight="2dp"
                     android:paddingLeft="2dp"
                     android:layout_width="match_parent"
@@ -82,12 +83,12 @@
 
                     <com.nerv.pricepoint.AutoResizeTextView
                         android:id="@+id/description"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
                         android:text="Молоко Простоквашино пастеризованное 3.2%, 0.93 л"
                         android:maxLines="5"
-                        android:textColor="@color/orderValuesColor"/>
+                        android:textColor="@android:color/white"/>
 
                     <com.nerv.pricepoint.AutoResizeTextView
                         android:id="@+id/ean"
@@ -97,7 +98,7 @@
                         android:maxLines="1"
                         android:textSize="12sp"
                         android:layout_alignParentBottom="true"
-                        android:textColor="@color/etBottomLineColor"/>
+                        android:textColor="@android:color/white"/>
 
                 </RelativeLayout>
             </LinearLayout>
@@ -144,8 +145,19 @@
                                         android:textSize="16sp"
                                         android:gravity="center"
                                         android:layout_marginLeft="15dp"
-                                        android:textColor="@android:color/black"
+                                        android:textColor="@color/textColor1"
                                         android:text="Цена"/>
+
+                                    <TextView
+                                        android:id="@+id/costReg"
+                                        android:layout_alignParentRight="true"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="match_parent"
+                                        android:textSize="20sp"
+                                        android:gravity="center"
+                                        android:layout_marginRight="15dp"
+                                        android:textColor="@color/textColor2"
+                                        android:text="182,2"/>
 
                                 </RelativeLayout>
 
@@ -161,8 +173,19 @@
                                         android:textSize="16sp"
                                         android:gravity="center"
                                         android:layout_marginLeft="15dp"
-                                        android:textColor="@android:color/black"
+                                        android:textColor="@color/textColor1"
                                         android:text="Цена по карте"/>
+
+                                    <TextView
+                                        android:id="@+id/costCard"
+                                        android:layout_alignParentRight="true"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="match_parent"
+                                        android:textSize="20sp"
+                                        android:gravity="center"
+                                        android:layout_marginRight="15dp"
+                                        android:textColor="@color/textColor2"
+                                        android:text="182,2"/>
 
                                 </RelativeLayout>
 
@@ -191,18 +214,42 @@
                                                 android:textSize="16sp"
                                                 android:gravity="center"
                                                 android:layout_marginLeft="15dp"
-                                                android:textColor="@android:color/black"
+                                                android:textColor="@color/textColor1"
                                                 android:text="Цена по акции"/>
 
-                                            <TextView
+                                            <LinearLayout
                                                 android:layout_width="wrap_content"
-                                                android:layout_height="wrap_content"
-                                                android:textSize="12sp"
-                                                android:gravity="center"
-                                                android:layout_marginLeft="15dp"
-                                                android:textColor="@android:color/black"
-                                                android:text="«11111111111»"/>
+                                                android:layout_height="wrap_content">
+                                                <TextView
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:textSize="12sp"
+                                                    android:gravity="center"
+                                                    android:layout_marginLeft="15dp"
+                                                    android:textColor="@color/textColor2"
+                                                    android:text="«3 по цене 1-ого»"/>
+
+                                                <ImageView
+                                                    android:paddingLeft="5dp"
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_gravity="center"
+                                                    android:src="@drawable/collapse"
+                                                    />
+                                            </LinearLayout>
+
                                         </LinearLayout>
+
+                                        <TextView
+                                            android:id="@+id/costPromo"
+                                            android:layout_alignParentRight="true"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="match_parent"
+                                            android:textSize="20sp"
+                                            android:gravity="center"
+                                            android:layout_marginRight="15dp"
+                                            android:textColor="@color/textColor2"
+                                            android:text="182,2"/>
                                     </RelativeLayout>
 
                                     <LinearLayout
@@ -228,14 +275,17 @@
                                             android:layout_marginBottom="5dp">
 
                                             <ImageView
-                                                android:layout_width="30dp"
-                                                android:layout_height="30dp"
-                                                android:background="@android:color/holo_green_dark"/>
+                                                android:layout_width="15dp"
+                                                android:layout_height="13dp"
+                                                android:layout_gravity="center"
+                                                android:src="@drawable/comment"
+                                                android:layout_marginRight="5dp"
+                                                android:background="@android:color/white"/>
 
                                             <TextView
                                                 android:layout_width="wrap_content"
                                                 android:layout_height="match_parent"
-                                                android:textColor="@android:color/black"
+                                                android:textColor="@color/textColor1"
                                                 android:textSize="10sp"
                                                 android:gravity="center"
                                                 android:text="ДОБАВИТЬ КОММЕНТАРИЙ"/>

@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:elevation="2dp"
     android:clipChildren="false"
-    android:weightSum="2"
+    android:weightSum="1"
     android:background="@drawable/bg_wo_outline">
 
     <ImageView
@@ -13,16 +13,19 @@
         android:layout_weight="0.2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/holo_blue_dark"/>
+        android:src="@drawable/camera"
+        android:scaleType="center"
+        android:background="#f3f3f3"/>
 
     <TextView
         android:layout_below="@+id/photo"
-        android:id="@+id/description"
+        android:id="@+id/name"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:textColor="@android:color/black"
+        android:textColor="#878787"
         android:layout_weight="0.8"
+        android:gravity="center"
         android:text="TEXT"
-        android:background="@android:color/holo_green_dark"/>
+        android:background="@android:color/white"/>
 
 </LinearLayout>

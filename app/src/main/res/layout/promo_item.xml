@@ -9,7 +9,7 @@
         android:id="@+id/promoName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@android:color/black"
+        android:textColor="@color/textColor1"
         android:textSize="16sp"
         android:text="Some text"
         android:layout_centerVertical="true"

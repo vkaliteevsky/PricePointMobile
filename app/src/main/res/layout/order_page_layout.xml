@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@android:color/white">
 
     <RelativeLayout
         android:id="@+id/leftSideMenu"
-        android:visibility="gone"
+        android:visibility="visible"
         android:orientation="vertical"
         android:layout_width="1dp"
         android:layout_height="match_parent"
@@ -18,137 +17,39 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/pageTitleSize"
             android:textColor="@android:color/white"
-            android:text="ВСЕ"
+            android:text="КАТЕГОРИИ"
+            android:letterSpacing="0.15"
             android:layout_marginTop="@dimen/pageTitleMarginTop"
             android:layout_marginBottom="@dimen/pageTitleMarginBottomOrderPage"
-            android:textSize="12sp"
+            android:textSize="13sp"
             android:gravity="center"
             android:layout_alignParentTop="true"/>
 
-        <android.support.v7.widget.RecyclerView
+
+        <TextView
             android:layout_below="@id/categoriesTitle"
+            android:id="@+id/allCategories"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:clickable="true"
+            android:gravity="center_vertical"
+            android:text="ВСЕ"/>
+
+        <android.support.v7.widget.RecyclerView
+            android:layout_below="@id/allCategories"
             android:id="@+id/categoryRV"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
         </android.support.v7.widget.RecyclerView>
 
-        <LinearLayout
-            android:layout_alignParentBottom="true"
-            android:orientation="horizontal"
-            android:id="@+id/backToTasksBtn"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:paddingLeft="20dp"
-            android:clickable="true"
-            android:background="@android:color/transparent">
-
-            <ImageView
-                android:layout_width="8dp"
-                android:layout_height="12dp"
-                android:src="@drawable/back"
-                android:layout_gravity="center_vertical"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:textSize="12sp"
-                android:layout_marginLeft="5dp"
-                android:textColor="@android:color/white"
-                android:text="К ЗАКАЗАМ"/>
-
-
-        </LinearLayout>
-
     </RelativeLayout>
 
-    <LinearLayout
-        android:id="@+id/tasksLayout"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_gradient">
-
-            <RelativeLayout
-                android:layout_marginTop="@dimen/pageTitleMarginTop"
-                android:layout_width="match_parent"
-                android:layout_height="50dp">
-
-                <TextView
-                    android:id="@+id/category"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:textColor="@android:color/white"
-                    android:text="ВСЕ"
-                    android:textSize="13sp"
-                    android:layout_gravity="center"
-                    android:layout_centerInParent="true"
-                    android:gravity="center"/>
-
-                <ImageButton
-                    android:id="@+id/leftSideMenuBtn"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_centerVertical="true"
-                    android:src="@drawable/menu"
-                    android:background="@android:color/transparent"/>
-
-                <ImageButton
-                    android:id="@+id/rightSideMenuBtn"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:layout_alignParentRight="true"
-                    android:layout_centerVertical="true"
-                    android:src="@drawable/filter"
-                    android:background="@android:color/transparent"/>
-
-            </RelativeLayout>
-        </FrameLayout>
-
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:elevation="2dp"
-            android:layout_marginTop="@dimen/orderPageSpace"
-            android:layout_marginBottom="5dp"
-            android:layout_marginLeft="@dimen/orderItemMargin"
-            android:layout_marginRight="@dimen/orderItemMargin"
-            android:background="@drawable/bg_wo_outline">
-
-
-            <ImageButton
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center"
-                android:src="@drawable/search"
-                android:background="@android:color/white"/>
-
-            <EditText
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:maxLines="1"
-                android:lines="1"
-                android:textColorHint="@color/etHintColor"
-                android:hint="Поиск"
-                android:inputType="text"
-                android:textColor="@android:color/black"
-                android:background="@android:color/white"/>
-
-        </LinearLayout>
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/tasksRV"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@android:color/white">
-        </android.support.v7.widget.RecyclerView>
-    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/rightSideMenu"
@@ -156,8 +57,180 @@
         android:orientation="vertical"
         android:layout_width="1dp"
         android:layout_height="match_parent"
-        android:background="@android:color/holo_purple">
+        android:background="@drawable/bg_gradient">
+
+        <TextView
+            android:id="@+id/showTitle"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/pageTitleSize"
+            android:textColor="@android:color/white"
+            android:text="ПОКАЗАТЬ"
+            android:letterSpacing="0.15"
+            android:layout_marginTop="@dimen/pageTitleMarginTop"
+            android:layout_marginBottom="@dimen/pageTitleMarginBottomOrderPage"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:layout_alignParentTop="true"/>
+
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginTop="5dp"
+            android:background="@android:color/transparent">
+
+            <TextView
+                android:id="@+id/allTasks"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:text="Все задачи"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="15dp"/>
+
+            <CheckBox
+                android:id="@+id/allTasksCheckbox"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:button="@drawable/white_checkbox"
+                android:checked="true"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="15dp"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_marginTop="5dp"
+            android:background="@android:color/transparent">
+
+            <TextView
+                android:id="@+id/promoName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:text="В работе"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="15dp"/>
+
+            <CheckBox
+                android:id="@+id/checkbox"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:button="@drawable/white_checkbox"
+                android:checked="true"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="15dp"/>
+
+        </RelativeLayout>
 
     </LinearLayout>
 
-</LinearLayout>
+    <FrameLayout
+        android:id="@+id/tasksLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_gradient">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginTop="@dimen/pageTitleMarginTop">
+
+                    <TextView
+                        android:id="@+id/category"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_centerInParent="true"
+                        android:layout_gravity="center"
+                        android:letterSpacing="0.15"
+                        android:gravity="center"
+                        android:text="ВСЕ"
+                        android:textColor="@android:color/white"
+                        android:textSize="13sp" />
+
+                    <ImageButton
+                        android:id="@+id/leftSideMenuBtn"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_centerVertical="true"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/menu" />
+
+                    <ImageButton
+                        android:id="@+id/rightSideMenuBtn"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/filter" />
+
+                </RelativeLayout>
+            </FrameLayout>
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="5dp"
+                android:layout_marginLeft="@dimen/orderItemMargin"
+                android:layout_marginRight="@dimen/orderItemMargin"
+                android:layout_marginTop="@dimen/orderPageSpace"
+                android:background="@drawable/bg_wo_outline"
+                android:elevation="2dp"
+                android:orientation="horizontal">
+
+
+                <ImageButton
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center"
+                    android:background="@android:color/white"
+                    android:src="@drawable/search" />
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:background="@android:color/white"
+                    android:hint="Поиск"
+                    android:inputType="text"
+                    android:lines="1"
+                    android:maxLines="1"
+                    android:textColor="@android:color/black"
+                    android:textColorHint="@color/etHintColor" />
+
+            </LinearLayout>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/tasksRV"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scrollbars="vertical"
+                android:overScrollMode="never"
+                android:background="@android:color/white"></android.support.v7.widget.RecyclerView>
+        </LinearLayout>
+
+        <View
+            android:id="@+id/space"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:visibility="gone" />
+    </FrameLayout>
+
+</FrameLayout>

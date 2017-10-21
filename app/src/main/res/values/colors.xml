@@ -16,4 +16,7 @@
 
     <color name="bgColor1">#F77062</color>
     <color name="bgColor2">#FE5196</color>
+
+    <color name="textColor1">#878787</color>
+    <color name="textColor2">#F77062</color>
 </resources>

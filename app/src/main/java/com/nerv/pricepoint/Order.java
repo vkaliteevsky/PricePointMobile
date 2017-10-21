@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Created by NERV on 11.10.2017.
@@ -28,6 +30,7 @@ public class Order {
     public int photos;
 
     public ArrayList<Task> tasks = new ArrayList<>();
+    public Map<String, ArrayList<Task>> categories;
 
     public Order(JSONObject fields) {
         startDate = Utils.stringToDate(fields.optString("task_start"));
@@ -39,8 +42,7 @@ public class Order {
         mark = Utils.nullToEmpty(fields.optString("task_mark"));
     }
 
-    public static ArrayList<Order> getOrders(JSONArray tasks) {
-        HashMap<Integer, Order> orders = new HashMap<>();
+    public static void getOrders(JSONArray tasks, HashMap<Integer, Order> orders) {
         try {
             for (int i = 0; i < tasks.length(); i++) {
                 int orderId = tasks.getJSONObject(i).getInt("task_idorder");
@@ -58,9 +60,21 @@ public class Order {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
 
+    public void sortTasksByCategory() {
+        HashMap<String, ArrayList<Task>> res = new HashMap<>();
 
-        return new ArrayList<>(orders.values());
+        for (Task t : tasks) {
+            if (res.containsKey(t.category)) {
+                res.get(t.category).add(t);
+            } else {
+                res.put(t.category, new ArrayList<Task>());
+                res.get(t.category).add(t);
+            }
+        }
+
+        categories = new TreeMap<>(res);
     }
 
     public void computeOrderInfo() {

@@ -110,13 +110,17 @@ public class OrdersPageFragment extends CustomFragment implements View.OnClickLi
         }
     }
 
+    private float SIDE_MENU_WIDTH;
+
     private View view;
 
     private MainActivity main;
     private RecyclerView ordersRV;
     private OrderRecyclerAdapter orderRecyclerAdapter;
     private View leftSideMenu;
+    private View ordersLayout;
     private int screenWidth;
+    private View space;
 
     @Override
     public void init(MainActivity main) {
@@ -139,9 +143,17 @@ public class OrdersPageFragment extends CustomFragment implements View.OnClickLi
         main.getWindowManager().getDefaultDisplay().getSize(size);
         screenWidth = size.x;
 
-        leftSideMenu = view.findViewById(R.id.leftSideMenu);
+        SIDE_MENU_WIDTH = size.x * 0.7f;
 
-        view.findViewById(R.id.ordersLayout).getLayoutParams().width = screenWidth;
+        leftSideMenu = view.findViewById(R.id.leftSideMenu);
+        leftSideMenu.getLayoutParams().width = (int) SIDE_MENU_WIDTH;
+        leftSideMenu.setTranslationX(-SIDE_MENU_WIDTH);
+
+        ordersLayout = view.findViewById(R.id.ordersLayout);
+        ordersLayout.getLayoutParams().width = screenWidth;
+
+        space = view.findViewById(R.id.space);
+        space.setOnClickListener(this);
 
         return view;
     }
@@ -153,17 +165,19 @@ public class OrdersPageFragment extends CustomFragment implements View.OnClickLi
         ordersRV = null;
         orderRecyclerAdapter = null;
         leftSideMenu = null;
+        space = null;
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.leftSideMenuBtn:
-                if (leftSideMenu.getVisibility() == View.GONE) {
-                    Utils.expand(leftSideMenu, (int) (screenWidth * 0.7f));
-                } else {
-                    Utils.collapse(leftSideMenu);
-                }
+                space.setVisibility(View.VISIBLE);
+                Utils.translateSideMenu(leftSideMenu, ordersLayout, SIDE_MENU_WIDTH);
+                break;
+            case R.id.space:
+                space.setVisibility(View.GONE);
+                Utils.translateSideMenu(leftSideMenu, ordersLayout, -SIDE_MENU_WIDTH);
                 break;
         }
     }

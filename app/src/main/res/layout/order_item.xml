@@ -26,7 +26,7 @@
                 android:layout_height="wrap_content"
                 android:text="#000-014 FB"
                 android:layout_marginBottom="@dimen/orderValuesSpace"
-                android:textColor="@color/orderValuesColor" />
+                android:textColor="@color/textColor2" />
 
             <TextView
                 android:id="@+id/retail"
@@ -37,7 +37,7 @@
                 android:scrollHorizontally="true"
                 android:text="ЛЕНТА Саратов"
                 android:layout_marginBottom="@dimen/orderValuesSpace"
-                android:textColor="@android:color/black" />
+                android:textColor="@color/textColor1" />
 
             <TextView
                 android:id="@+id/address"
@@ -48,7 +48,7 @@
                 android:scrollHorizontally="true"
                 android:text="Шкиперский пр.14"
                 android:layout_marginBottom="@dimen/orderValuesSpace"
-                android:textColor="@android:color/black" />
+                android:textColor="@color/textColor1" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -64,15 +64,15 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="начало:"
+                        android:text="Начало:"
                         android:layout_marginBottom="@dimen/orderValuesSpace"
-                        android:textColor="@android:color/black" />
+                        android:textColor="@color/textColor1" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="окончание:"
-                        android:textColor="@android:color/black" />
+                        android:text="Окончание:"
+                        android:textColor="@color/textColor1" />
 
                 </LinearLayout>
 
@@ -88,14 +88,14 @@
                         android:layout_height="wrap_content"
                         android:text="31.08.2017"
                         android:layout_marginBottom="@dimen/orderValuesSpace"
-                        android:textColor="@android:color/black" />
+                        android:textColor="@color/textColor1" />
 
                     <TextView
                         android:id="@+id/endDate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="31.08.2017"
-                        android:textColor="@android:color/black" />
+                        android:textColor="@color/textColor1" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -118,34 +118,34 @@
                     android:layout_height="wrap_content"
                     android:text="Всего"
                     android:layout_marginBottom="@dimen/orderValuesSpace"
-                    android:textColor="@android:color/black" />
+                    android:textColor="@color/textColor1" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Выполнено"
                     android:layout_marginBottom="@dimen/orderValuesSpace"
-                    android:textColor="@android:color/black" />
+                    android:textColor="@color/textColor1" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Нет товара"
                     android:layout_marginBottom="@dimen/orderValuesSpace"
-                    android:textColor="@android:color/black" />
+                    android:textColor="@color/textColor1" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Изменить"
                     android:layout_marginBottom="@dimen/orderValuesSpace"
-                    android:textColor="@android:color/black" />
+                    android:textColor="@color/textColor1" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Фото"
-                    android:textColor="@android:color/black" />
+                    android:textColor="@color/textColor1" />
 
             </LinearLayout>
 
@@ -161,7 +161,7 @@
                     android:layout_height="wrap_content"
                     android:text="1111"
                     android:layout_marginBottom="@dimen/orderValuesSpace"
-                    android:textColor="@color/orderValuesColor" />
+                    android:textColor="@color/textColor2" />
 
                 <TextView
                     android:id="@+id/completeTasksCount"
@@ -169,7 +169,7 @@
                     android:layout_height="wrap_content"
                     android:text="4"
                     android:layout_marginBottom="@dimen/orderValuesSpace"
-                    android:textColor="@color/orderValuesColor" />
+                    android:textColor="@color/textColor2" />
 
                 <TextView
                     android:id="@+id/noGoodsTasksCount"
@@ -177,7 +177,7 @@
                     android:layout_height="wrap_content"
                     android:text="45"
                     android:layout_marginBottom="@dimen/orderValuesSpace"
-                    android:textColor="@color/orderValuesColor" />
+                    android:textColor="@color/textColor2" />
 
                 <TextView
                     android:id="@+id/toEditTasksCount"
@@ -185,7 +185,7 @@
                     android:layout_height="wrap_content"
                     android:text="2"
                     android:layout_marginBottom="@dimen/orderValuesSpace"
-                    android:textColor="@color/orderValuesColor" />
+                    android:textColor="@color/textColor2" />
 
                 <TextView
                     android:id="@+id/fotosCount"
@@ -193,7 +193,7 @@
                     android:layout_height="wrap_content"
                     android:text="2222"
                     android:layout_marginBottom="@dimen/orderValuesSpace"
-                    android:textColor="@color/orderValuesColor" />
+                    android:textColor="@color/textColor2" />
 
             </LinearLayout>
 
