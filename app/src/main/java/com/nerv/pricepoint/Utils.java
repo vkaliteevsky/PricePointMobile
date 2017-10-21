@@ -1,19 +1,24 @@
 package com.nerv.pricepoint;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 
 import com.android.volley.AuthFailureError;
@@ -44,7 +49,19 @@ import java.util.Map;
  * Created by NERV on 06.10.2017.
  */
 
+interface InputDialogCallback {
+    void callback(String text);
+}
+
 public class Utils {
+    public static String ROOT_DIR;
+    public static final int MAX_PHOTO_SIZE = 1024;
+
+
+    public static void init() {
+        ROOT_DIR = Environment.getExternalStorageDirectory().getAbsolutePath() + "/PricePoint/";
+    }
+
     public static void requestJSONObject(Context context, final String accessToken, int method, String url
             , Response.Listener<JSONObject> responceListener, Response.ErrorListener errorListener) {
         RequestQueue queue = Volley.newRequestQueue(context);
@@ -187,7 +204,7 @@ public class Utils {
                 outStream.flush();
                 outStream.close();
 
-                img.path = fullPath;
+                img.setPath(fullPath);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -226,52 +243,6 @@ public class Utils {
         v.startAnimation(a);
     }
 
-    public static void collapse(final View v) {
-        final int initialWidth = v.getMeasuredWidth();
-
-        Animation a = new Animation()
-        {
-            @Override
-            protected void applyTransformation(float interpolatedTime, Transformation t) {
-                if(interpolatedTime == 1){
-                    v.setVisibility(View.GONE);
-                }else{
-                    v.getLayoutParams().width = initialWidth - (int)(initialWidth * interpolatedTime);
-                    v.requestLayout();
-                }
-            }
-
-            @Override
-            public boolean willChangeBounds() {
-                return true;
-            }
-        };
-
-        // 1dp/ms
-        a.setDuration((int)(initialWidth / v.getContext().getResources().getDisplayMetrics().density));
-        v.startAnimation(a);
-    }
-
-    public static void translate(final View v, final int targetTranslation) {
-        Animation a = new Animation()
-        {
-            @Override
-            protected void applyTransformation(float interpolatedTime, Transformation t) {
-                v.setTranslationX(-(int)(targetTranslation * interpolatedTime));
-                v.requestLayout();
-            }
-
-            @Override
-            public boolean willChangeBounds() {
-                return true;
-            }
-        };
-
-        // 1dp/ms
-        a.setDuration((int)(targetTranslation / v.getContext().getResources().getDisplayMetrics().density));
-        v.startAnimation(a);
-    }
-
     public static void translateSideMenu(final View sideMenu, final View mainView, final float targetTranslation) {
         final int initialSideMenuTranslation = (int) sideMenu.getTranslationX();
         final int initialmainViewTranslation = (int) mainView.getTranslationX();
@@ -298,25 +269,37 @@ public class Utils {
         mainView.startAnimation(a);
     }
 
-    public static void translateBack(final View v) {
-        final int initialTranslation = (int) v.getTranslationX();
+    public static void inputTextDialog(Context context, int type, String title, String text, final InputDialogCallback callback) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(title);
 
-        Animation a = new Animation()
-        {
+        // Set up the input
+        final EditText input = new EditText(context);
+        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+        input.setInputType(type);
+        input.setText(text);
+        input.setSingleLine(false);
+        input.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
+        builder.setView(input);
+
+        // Set up the buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
-            protected void applyTransformation(float interpolatedTime, Transformation t) {
-                v.setTranslationX(initialTranslation - (int)(initialTranslation * interpolatedTime));
-                v.requestLayout();
+            public void onClick(DialogInterface dialog, int which) {
+                callback.callback(input.getText().toString());
             }
-
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
             @Override
-            public boolean willChangeBounds() {
-                return true;
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
             }
-        };
+        });
 
-        // 1dp/ms
-        a.setDuration((int)(Math.abs(initialTranslation) / v.getContext().getResources().getDisplayMetrics().density));
-        v.startAnimation(a);
+        builder.show();
+    }
+
+    public static String formattedPrice(double price) {
+        return price == 0 ? "..." : String.valueOf(price).replace(".", ",") + "\u20BD";
     }
 }

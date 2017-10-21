@@ -56,7 +56,6 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
 
         private Task task;
         private MainActivity main;
-        Target target;
 
         public void init(MainActivity main) {
             this.main = main;
@@ -83,15 +82,32 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
             ean.setText(task.ean);
             fstPrice.setText(task.costReg == 0 ? "..." : String.valueOf(task.costReg).replace(".", ",") + "\u20BD");
             sndPrice.setText(task.costCard == 0 ? "..." : String.valueOf(task.costCard).replace(".", ",") + "\u20BD");
+            loadingBar.setVisibility(View.GONE);
 
             if (task.imgs.containsKey(Task.ImgType.ICON)) {
                 Task.Img img = task.imgs.get(Task.ImgType.ICON);
 
-                if (img.path.isEmpty()) {
-                    loadIconFromServer(task);
+                if (!img.loading) {
+                    if (img.path.isEmpty()) {
+                        loadIconFromServer(task);
+                    } else {
+                        File f = new File(img.path);
+                        Picasso.with(main).load(f).into(icon);
+                    }
                 } else {
-                    File f = new File(img.path);
-                    Picasso.with(main).load(f).into(icon);
+                    final Task targetTask = task;
+
+                    img.addImgLoadListener(new Task.ImgLoadListener() {
+                        @Override
+                        public void imageLoaded(Task.Img img) {
+                            if (targetTask == task) {
+                                File f = new File(img.path);
+                                Picasso.with(main).load(f).into(icon);
+                                loadingBar.setVisibility(View.GONE);
+                            }
+                        }
+                    });
+                    loadingBar.setVisibility(View.VISIBLE);
                 }
             }
         }
@@ -110,22 +126,26 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
 
             loadingBar.setVisibility(View.VISIBLE);
 
+            final Task.Img img = task.imgs.get(Task.ImgType.ICON);
             Picasso picasso = new Picasso.Builder(main).downloader(new OkHttpDownloader(okHttpClient)).build();
+            img.loading = true;
 
-            target = new Target() {
+            Target target = new Target() {
                 @Override
                 public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
                     if (targetTask == task) {
                         icon.setImageBitmap(bitmap);
                     }
 
-                    Utils.saveImage(main, bitmap, targetTask.imgs.get(Task.ImgType.ICON));
+                    Utils.saveImage(main, bitmap, img);
                     loadingBar.setVisibility(View.INVISIBLE);
+                    PicassoTargetManager.removeTarget(this);
                 }
 
                 @Override
                 public void onBitmapFailed(Drawable errorDrawable) {
                     loadingBar.setVisibility(View.INVISIBLE);
+                    PicassoTargetManager.removeTarget(this);
                 }
 
                 @Override
@@ -134,7 +154,9 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
                 }
             };
 
-            picasso.load(task.imgs.get(Task.ImgType.ICON).url).into(target);
+            PicassoTargetManager.addTarget(target);
+
+            picasso.load(img.url).into(target);
         }
 
         @Override

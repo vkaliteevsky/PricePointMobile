@@ -8,14 +8,27 @@
     android:weightSum="1"
     android:background="@drawable/bg_wo_outline">
 
-    <ImageView
-        android:id="@+id/photo"
+    <FrameLayout
         android:layout_weight="0.2"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:src="@drawable/camera"
-        android:scaleType="center"
-        android:background="#f3f3f3"/>
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/photo"
+            android:clickable="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:background="#f3f3f3"/>
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"/>
+    </FrameLayout>
+
 
     <TextView
         android:layout_below="@+id/photo"

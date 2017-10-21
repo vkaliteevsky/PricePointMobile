@@ -3,7 +3,6 @@ package com.nerv.pricepoint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.telecom.Call;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -21,7 +20,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * Created by NERV on 10.10.2017.
@@ -54,7 +52,11 @@ public class DatabaseManager {
     private final static String APP_PREFERENCES = "appSettings";
     private final static String TASK_FIELDS = "&$select=task_start,task_end,task_retail,task_city,task_address,task_idorder," +
             "task_mark,GUID,task_costreg,task_costcard,task_costpromo,task_commet,task_lat,task_lon,task_class,task_ean," +
-            "Title,task_photo,task_id,task_edit,task_no,task_done,task_sync";
+            "Title,task_photo,task_id,task_edit,task_no,task_done,task_sync,task_stock";
+
+    private final static String STOCK_FIELDS = "?$select=Title,stock_id";
+    private final static String STOCK_ITEMS = "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('Stock')/items" + STOCK_FIELDS;
+
 
     private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
 
@@ -90,6 +92,7 @@ public class DatabaseManager {
     private String userPassword;
 
     public ArrayList<Order> orders;
+    public HashMap<Integer, Promo> promos = new HashMap<>();
     private HashMap<Integer, Order> ordersHM;
 
     public AuthenticationContext authContext;
@@ -117,6 +120,33 @@ public class DatabaseManager {
         aadUserId = appSettings.getString("aadUserId", "");
     }
 
+    public void retrievePromos(String url) {
+        Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.GET
+                , url
+                , new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            JSONObject d = response.getJSONObject("d");
+
+                            Promo.getPromos(d.getJSONArray("results"), promos);
+
+                            if (d.has("__next")) {
+                                retrievePromos(d.getString("__next"));
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                , new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("","");
+                    }
+                });
+    }
+
     public void retrieveUserTasks(final Callback callback) {
         if (userId == -1) {
             return;
@@ -124,9 +154,11 @@ public class DatabaseManager {
 
         ordersHM = new HashMap<>();
 
+        retrievePromos(STOCK_ITEMS);
+
         Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.GET
                 , "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('Task')/items" +
-                        "?$filter=task_idman%20eq%20" + String.valueOf(2) + TASK_FIELDS + "&$expand=AttachmentFiles"
+                        "?$filter=task_idman%20eq%20" + String.valueOf(1) + TASK_FIELDS + "&$expand=AttachmentFiles"
                 , new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {

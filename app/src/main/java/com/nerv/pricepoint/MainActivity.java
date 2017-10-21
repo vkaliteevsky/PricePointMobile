@@ -1,47 +1,43 @@
 package com.nerv.pricepoint;
 
 import android.Manifest;
+import android.content.ClipData;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.provider.MediaStore;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.content.Intent;
-import android.util.Config;
 import android.util.Log;
-import android.view.View;
-import android.webkit.CookieManager;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.widget.Button;
 
-import com.microsoft.aad.adal.AuthenticationCallback;
-import com.microsoft.aad.adal.AuthenticationContext;
-import com.microsoft.aad.adal.AuthenticationException;
-import com.microsoft.aad.adal.AuthenticationResult;
-import com.microsoft.aad.adal.PromptBehavior;
-
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.NTCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
-
+import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private static String[] PERMISSIONS = {Manifest.permission.INTERNET
             , Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.ACCESS_WIFI_STATE
             , Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
 
+    public static final int IMAGE_LOADED = 0;
+    public static final int REQUEST_IMAGE_CAPTURE = 2;
+
+
     private DatabaseManager databaseManager;
     private PageController pageController;
     private boolean hasPermissions = Build.VERSION.SDK_INT < Build.VERSION_CODES.M;
+    public static Handler handler;
+    private Uri imageUri;
 
 
     public boolean hasPermissions(String[] permissions) {
@@ -113,6 +109,23 @@ public class MainActivity extends AppCompatActivity {
         hasPermissions = hasPermissions(PERMISSIONS);
 
         if (hasPermissions) {
+            Utils.init();
+
+            handler = new Handler(Looper.getMainLooper()) {
+                @Override
+                public void handleMessage(Message inputMessage) {
+                    switch (inputMessage.what) {
+                        case IMAGE_LOADED:
+                            Task.Img img = (Task.Img) inputMessage.obj;
+                            img.callListeners();
+                            break;
+                        default:
+                    }
+                    super.handleMessage(inputMessage);
+                }
+            };
+
+
             pageController = new PageController(this);
 
             databaseManager = new DatabaseManager(this);
@@ -149,5 +162,53 @@ public class MainActivity extends AppCompatActivity {
         if (databaseManager != null) {
             databaseManager.authContext.onActivityResult(requestCode, resultCode, data);
         }
+
+        switch(requestCode) {
+            case REQUEST_IMAGE_CAPTURE:
+                if (resultCode == RESULT_OK) {
+                    cameraPhotoCallback.photoTaken(currentPhotoPath);
+                } else {
+                    super.onResume();
+                }
+                break;
+        }
+    }
+
+    private String currentPhotoPath;
+    private CameraPhotoCallback cameraPhotoCallback;
+
+    public void getPhotoFromCamera(CameraPhotoCallback callback) {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        cameraPhotoCallback = callback;
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "com.nerv.pricepoint.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                "temp",
+                ".jpg",
+                storageDir
+        );
+
+        currentPhotoPath = image.getAbsolutePath();
+        return image;
     }
 }

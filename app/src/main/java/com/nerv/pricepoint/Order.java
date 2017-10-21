@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -30,6 +31,7 @@ public class Order {
     public int photos;
 
     public ArrayList<Task> tasks = new ArrayList<>();
+    public LinkedList<Task> completedOrders = new LinkedList<>();
     public Map<String, ArrayList<Task>> categories;
 
     public Order(JSONObject fields) {

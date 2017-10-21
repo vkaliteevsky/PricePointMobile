@@ -6,7 +6,7 @@
     android:background="@android:color/white">
 
     <TextView
-        android:id="@+id/promoName"
+        android:id="@+id/name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/textColor1"
@@ -20,7 +20,8 @@
         android:layout_width="25dp"
         android:layout_height="25dp"
         android:button="@drawable/checkbox"
-        android:checked="true"
+        android:checked="false"
+        android:clickable="false"
         android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
         android:layout_marginRight="15dp"/>
