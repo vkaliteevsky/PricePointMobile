@@ -70,8 +70,40 @@
             android:layout_marginLeft="@dimen/LPMargindLR"
             android:layout_marginRight="@dimen/LPMargindLR"
             android:background="@drawable/bg_wo_outline"/>
-        
-        <Button
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_marginTop="10dp"
+            android:paddingBottom="10dp"
+            android:paddingTop="5dp"
+            android:background="@android:color/transparent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/logInBtn"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/bg_wo_outline"
+                android:layout_gravity="center"
+                android:textColor="@color/loginBtnTextColor"
+                android:layout_marginLeft="@dimen/LPMargindLR"
+                android:layout_marginRight="@dimen/LPMargindLR"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:elevation="4dp"
+                android:text = "Войти">
+            </Button>
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:translationZ="2dp"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:visibility="visible"
+                android:layout_gravity="center"/>
+        </FrameLayout>
+
+        <!--<Button
             android:id="@+id/logInBtn"
             android:layout_width="match_parent"
             android:layout_height="50dp"
@@ -83,7 +115,8 @@
             android:layout_marginTop="@dimen/LPLoginBtnMarginTop"
             android:elevation="4dp"
             android:layout_marginBottom="4dp"
-            android:text = "Войти"/>
+            android:text = "Войти">
+        </Button>-->
 
     </LinearLayout>
 

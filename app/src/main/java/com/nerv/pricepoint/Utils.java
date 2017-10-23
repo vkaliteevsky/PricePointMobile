@@ -28,6 +28,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
@@ -39,6 +40,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -73,6 +75,43 @@ public class Utils {
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Authorization", "Bearer " + accessToken);
                 headers.put("Accept", "application/json;odata=verbose");
+                return headers;
+            }
+        };
+
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                3000,
+                2,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        queue.add(request);
+    }
+
+    public static void sendJSONObject(Context context, final String accessToken
+            , final String formDigestValue, final String eTag, final String data, String url
+            , Response.Listener<String> responceListener, Response.ErrorListener errorListener) {
+        RequestQueue queue = Volley.newRequestQueue(context);
+
+        StringRequest request = new StringRequest(Request.Method.POST, url, responceListener, errorListener) {
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                return data.getBytes();
+            }
+
+            @Override
+            public String getBodyContentType() {
+                return "application/json;odata=verbose";
+            }
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + accessToken);
+                headers.put("Accept", "application/json;odata=verbose");
+                headers.put("X-RequestDigest", formDigestValue);
+                headers.put("If-Match", "*");
+                headers.put("X-HTTP-Method", "MERGE");
+                headers.put("content-type", "application/json;odata=verbose");
+                headers.put("content-length", String.valueOf(data.length()));
                 return headers;
             }
         };

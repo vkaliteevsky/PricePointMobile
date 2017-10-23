@@ -2,7 +2,9 @@ package com.nerv.pricepoint;
 
 import android.content.Context;
 import android.graphics.Point;
+import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -121,6 +123,7 @@ public class OrdersPageFragment extends CustomFragment implements View.OnClickLi
     private View ordersLayout;
     private int screenWidth;
     private View space;
+    private Boolean ordersLayoutTransFlag = true;
 
     @Override
     public void init(MainActivity main) {
@@ -138,6 +141,8 @@ public class OrdersPageFragment extends CustomFragment implements View.OnClickLi
         ordersRV.setAdapter(orderRecyclerAdapter);
 
         view.findViewById(R.id.leftSideMenuBtn).setOnClickListener(this);
+        view.findViewById(R.id.logOutBtn).setOnClickListener(this);
+        ((TextView) view.findViewById(R.id.username)).setText(main.getDatabaseManager().userName);
 
         Point size = new Point();
         main.getWindowManager().getDefaultDisplay().getSize(size);
@@ -155,7 +160,37 @@ public class OrdersPageFragment extends CustomFragment implements View.OnClickLi
         space = view.findViewById(R.id.space);
         space.setOnClickListener(this);
 
+        bgAnimation((TransitionDrawable) ordersLayout.getBackground(), true);
+        bgAnimation((TransitionDrawable) leftSideMenu.getBackground(), true);
+
         return view;
+    }
+
+    private void bgAnimation(final TransitionDrawable trans, final boolean flag) {
+        if (view == null) {
+            return;
+        }
+
+        Handler hand = new Handler();
+        hand.postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                change();
+            }
+            private void change()
+            {
+                if (flag)
+                {
+                    trans.startTransition(2000);
+                } else
+                {
+                    trans.reverseTransition(2000);
+                }
+                bgAnimation(trans, !flag);
+            }
+        }, 2000);
     }
 
     @Override
@@ -166,6 +201,7 @@ public class OrdersPageFragment extends CustomFragment implements View.OnClickLi
         orderRecyclerAdapter = null;
         leftSideMenu = null;
         space = null;
+        view = null;
     }
 
     @Override
@@ -178,6 +214,9 @@ public class OrdersPageFragment extends CustomFragment implements View.OnClickLi
             case R.id.space:
                 space.setVisibility(View.GONE);
                 Utils.translateSideMenu(leftSideMenu, ordersLayout, -SIDE_MENU_WIDTH);
+                break;
+            case R.id.logOutBtn:
+                main.getPageController().setPage(PageController.Page.LOGIN);
                 break;
         }
     }

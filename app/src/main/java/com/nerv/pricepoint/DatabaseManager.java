@@ -8,6 +8,7 @@ import android.util.Log;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationException;
@@ -18,6 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -34,7 +36,7 @@ public class DatabaseManager {
     }
 
     public enum LogInResult {
-        WRONG_PASSWORD, USER_NOT_FOUND, OK
+        WRONG_PASSWORD, USER_NOT_FOUND, OK, NO_CONNECTION
     }
 
     public interface LogInCallback {
@@ -52,7 +54,7 @@ public class DatabaseManager {
     private final static String APP_PREFERENCES = "appSettings";
     private final static String TASK_FIELDS = "&$select=task_start,task_end,task_retail,task_city,task_address,task_idorder," +
             "task_mark,GUID,task_costreg,task_costcard,task_costpromo,task_commet,task_lat,task_lon,task_class,task_ean," +
-            "Title,task_photo,task_id,task_edit,task_no,task_done,task_sync,task_stock";
+            "Title,task_photo,task_id,task_edit,task_no,task_done,task_sync,task_stock,task_eanscan,ID";
 
     private final static String STOCK_FIELDS = "?$select=Title,stock_id";
     private final static String STOCK_ITEMS = "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('Stock')/items" + STOCK_FIELDS;
@@ -90,6 +92,7 @@ public class DatabaseManager {
     private int userId = -1;
     private String userLogin;
     private String userPassword;
+    public String userName;
 
     public ArrayList<Order> orders;
     public HashMap<Integer, Promo> promos = new HashMap<>();
@@ -102,6 +105,8 @@ public class DatabaseManager {
 
     public Order selectedOrder;
     public Task selectedTask;
+
+    private String formDigestValue = "";
 
     public DatabaseManager(Activity activity) {
         this.activity = activity;
@@ -118,6 +123,77 @@ public class DatabaseManager {
 
     private void getAADUserId() {
         aadUserId = appSettings.getString("aadUserId", "");
+    }
+
+    public void getFormDigest() {
+        Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.POST
+                , "https://pointbox.sharepoint.com/boxpoint/_api/contextinfo"
+                , new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            formDigestValue = response.getJSONObject("d")
+                                    .getJSONObject("GetContextWebInformation")
+                                    .getString("FormDigestValue");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                , new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("","");
+                    }
+                });
+    }
+
+    public void sendData(final Task task, final Callback callback) {
+        String data = "{'__metadata':{'type':'SP.Data.TaskListItem'}}";
+        JSONObject json = null;
+
+        try {
+            json = new JSONObject(data);
+
+            json.put("Title", "we");
+
+            /*json.put("task_costreg", task.costReg);
+            json.put("task_costcard", task.costCard);
+            json.put("task_costpromo", task.costPromo);
+            json.put("task_commet", task.comment);
+            json.put("task_lat", task.latitude);
+            json.put("task_lon", task.longitude);
+            json.put("task_photo", task.photosCount);
+            json.put("task_edit", false);
+            json.put("task_no", task.noGoods);
+            json.put("task_done", true);
+            json.put("task_stock", task.promo);
+            json.put("task_sync", true);
+            json.put("task_eanscan", task.eanscan);*/
+
+            Utils.sendJSONObject(activity
+                    , authRes.getAccessToken()
+                    , formDigestValue
+                    , "\"56\""
+                    , json.toString()
+                    , "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle(%27Task%27)/items(" + task.dbId + ")"
+                    , new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            task.sync = true;
+                        }
+                    }
+                    , new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            task.sync = false;
+                            String msg = new String(error.networkResponse.data);
+                            Log.d("", "");
+                        }
+                    });
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     public void retrievePromos(String url) {
@@ -158,7 +234,7 @@ public class DatabaseManager {
 
         Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.GET
                 , "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('Task')/items" +
-                        "?$filter=task_idman%20eq%20" + String.valueOf(1) + TASK_FIELDS + "&$expand=AttachmentFiles"
+                        "?$filter=task_idman%20eq%20" + String.valueOf(1) /*+ TASK_FIELDS*/ + "&$expand=AttachmentFiles"
                 , new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -226,32 +302,17 @@ public class DatabaseManager {
                 });
     }
 
-    public void getItemAttachments(String itemId) {
-        /*Utils.requestJSONObject(activity, authResult.getAccessToken(), Request.Method.GET
-                , BASE_URL + siteId + "/drive/root/children"
-                , new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d("", "");
-                    }
-                }
-                , new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("", "");
-                    }
-                });*/
-    }
-
     public void checkLoginPassword(final String login, final String password, final LogInCallback callback) {
         if (callback == null) {
             return;
         }
 
+        getFormDigest();
+
         Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.GET
                 , "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('User')/items" +
                         "?$filter=user_mail%20eq%20%27" + login + "%27" +
-                        "&$select=user_id,user_pass"
+                        "&$select=user_id,user_pass,Title"
                 //"https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('User')/items?$filter=user_mail%20eq%20%27box@delcom.ru%27&$select=user_id,user_pass"
                 , new Response.Listener<JSONObject>() {
                     @Override
@@ -269,6 +330,7 @@ public class DatabaseManager {
                                     userId = fields.getInt("user_id");
                                     userLogin = login;
                                     userPassword = user_pass;
+                                    userName = fields.optString("Title");
 
                                     callback.logInCallback(LogInResult.OK);
                                 } else {
@@ -283,7 +345,7 @@ public class DatabaseManager {
                 , new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.d("", "");
+                        callback.logInCallback(LogInResult.NO_CONNECTION);
                     }
                 });
     }

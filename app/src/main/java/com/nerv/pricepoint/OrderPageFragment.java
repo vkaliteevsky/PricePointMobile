@@ -9,13 +9,16 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -53,6 +56,10 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
         private TextView fstPrice;
         private TextView sndPrice;
         private ProgressBar loadingBar;
+        private View comment;
+        private View photos;
+        private TextView photosCount;
+        private ImageButton status;
 
         private Task task;
         private MainActivity main;
@@ -73,6 +80,12 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
             sndPrice = (TextView) itemView.findViewById(R.id.sndPrice);
             loadingBar = (ProgressBar) itemView.findViewById(R.id.loadingBar);
             loadingBar.getIndeterminateDrawable().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
+            comment = itemView.findViewById(R.id.comment);
+            photos = itemView.findViewById(R.id.photos);
+            photosCount = (TextView) itemView.findViewById(R.id.photosCount);
+            status = (ImageButton) itemView.findViewById(R.id.status);
+
+            status.setOnClickListener(this);
         }
 
         public void setTask(final Task task) {
@@ -84,8 +97,33 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
             sndPrice.setText(task.costCard == 0 ? "..." : String.valueOf(task.costCard).replace(".", ",") + "\u20BD");
             loadingBar.setVisibility(View.GONE);
 
-            if (task.imgs.containsKey(Task.ImgType.ICON)) {
-                Task.Img img = task.imgs.get(Task.ImgType.ICON);
+            comment.setVisibility(task.comment.isEmpty() ? View.INVISIBLE : View.VISIBLE);
+
+            //photos count
+            if (task.photosCount > 0) {
+                photos.setVisibility(View.VISIBLE);
+                photosCount.setText(String.valueOf(task.photosCount));
+            } else {
+                photos.setVisibility(View.GONE);
+            }
+
+            //update status button
+            int id;
+
+            if (task.sync) {
+                id = R.drawable.check;
+            } else if (task.done) {
+                id = R.drawable.refresh;
+            } else {
+                id = R.drawable.error;
+            }
+
+            status.setImageResource(id);
+
+            //load goods icon
+            Task.Img img = task.imgs.get(Task.ImgType.ICON);
+
+            if (!img.url.isEmpty()) {
 
                 if (!img.loading) {
                     if (img.path.isEmpty()) {
@@ -161,8 +199,20 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
 
         @Override
         public void onClick(View v) {
-            main.getDatabaseManager().selectedTask = task;
-            main.getPageController().setPage(PageController.Page.TASK);
+            if (v.getId() != R.id.status) {
+                main.getDatabaseManager().selectedTask = task;
+                main.getPageController().setPage(PageController.Page.TASK);
+            } else {
+                main.getDatabaseManager().sendData(task, null);
+                /*if (task.done && !task.sync) {
+                    main.getDatabaseManager().sendData(task, new DatabaseManager.Callback() {
+                        @Override
+                        public void callback() {
+
+                        }
+                    });
+                }*/
+            }
         }
     }
 
@@ -301,6 +351,33 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
         return view;
     }
 
+    private void bgAnimation(final TransitionDrawable trans, final boolean flag) {
+        if (view == null) {
+            return;
+        }
+
+        Handler hand = new Handler();
+        hand.postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                change();
+            }
+            private void change()
+            {
+                if (flag)
+                {
+                    trans.startTransition(2000);
+                } else
+                {
+                    trans.reverseTransition(2000);
+                }
+                bgAnimation(trans, !flag);
+            }
+        }, 2000);
+    }
+
     private void initSideMenus() {
         Point size = new Point();
         main.getWindowManager().getDefaultDisplay().getSize(size);
@@ -325,6 +402,10 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
 
         space = view.findViewById(R.id.space);
         space.setOnClickListener(this);
+
+        bgAnimation((TransitionDrawable) leftSideMenu.getBackground(), true);
+        bgAnimation((TransitionDrawable) rightSideMenu.getBackground(), true);
+        bgAnimation((TransitionDrawable) (view.findViewById(R.id.top)).getBackground(), true);
     }
 
     @Override
@@ -343,6 +424,7 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
     public void onDestroyView() {
         super.onDestroyView();
 
+        view = null;
         tasksRV = null;
         taskRecyclerAdapter = null;
         leftSideMenu = null;

@@ -2,9 +2,13 @@ package com.nerv.pricepoint;
 
 import android.animation.LayoutTransition;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -168,6 +172,7 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
             View view = inflater.inflate(R.layout.sv_photos_item, null);
             ((TextView) view.findViewById(R.id.name)).setText(name);
             loadingBar = (ProgressBar) view.findViewById(R.id.progressBar);
+            loadingBar.getIndeterminateDrawable().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
             photo = (ImageView) view.findViewById(R.id.photo);
             photo.setOnClickListener(this);
 
@@ -263,6 +268,8 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
                     img.path = path;
                     img.changed = true;
 
+                    main.getDatabaseManager().selectedTask.updatePhotosCount();
+
                     photo.setImageDrawable(null);
 
                     File f = new File(path);
@@ -310,9 +317,12 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
     private Task task;
     private Task backup;
     private ImageView expandIcon;
+    private ImageView goodsIcon;
+    private ProgressBar iconProgressBar;
     private List<Fragment> photoItemFragments = new ArrayList<>();
 
     private MainActivity main;
+    public boolean animateBg = true;
 
     @Override
     public void init(MainActivity main) {
@@ -334,6 +344,9 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
             promosRV.setAdapter(promoRecyclerAdapter);
 
             expandIcon = (ImageView) view.findViewById(R.id.expandIcon);
+            goodsIcon = (ImageView) view.findViewById(R.id.goodsIcon);
+            iconProgressBar = (ProgressBar) view.findViewById(R.id.progressBar);
+            iconProgressBar.getIndeterminateDrawable().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
 
             view.findViewById(R.id.promoBtn).setOnClickListener(this);
             view.findViewById(R.id.noGoodsBtn).setOnClickListener(this);
@@ -398,7 +411,61 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
 
         fillGoodsInfo();
 
+        Task.Img icon = task.imgs.get(Task.ImgType.ICON);
+
+        if (icon.loading) {
+            final Task targetTask = task;
+
+            icon.addImgLoadListener(new Task.ImgLoadListener() {
+                @Override
+                public void imageLoaded(Task.Img img) {
+                    if (targetTask == task) {
+                        File f = new File(img.path);
+                        Picasso.with(main).load(f).into(goodsIcon);
+                        iconProgressBar.setVisibility(View.GONE);
+                    }
+                }
+            });
+            iconProgressBar.setVisibility(View.VISIBLE);
+        } else {
+            File f = new File(icon.path);
+            Picasso.with(main).load(f).into(goodsIcon);
+            iconProgressBar.setVisibility(View.GONE);
+        }
+
+        animateBg = true;
+
+        bgAnimation((TransitionDrawable) (view.findViewById(R.id.bg)).getBackground(), true);
+        bgAnimation((TransitionDrawable) (view.findViewById(R.id.saveBtn)).getBackground(), true);
+
         return view;
+    }
+
+    private void bgAnimation(final TransitionDrawable trans, final boolean flag) {
+        if (!animateBg) {
+            return;
+        }
+
+        Handler hand = new Handler();
+        hand.postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                change();
+            }
+            private void change()
+            {
+                if (flag)
+                {
+                    trans.startTransition(2000);
+                } else
+                {
+                    trans.reverseTransition(2000);
+                }
+                bgAnimation(trans, !flag);
+            }
+        }, 2000);
     }
 
     @Override
@@ -422,6 +489,8 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+
+        animateBg = false;
     }
 
     @Override
@@ -434,8 +503,18 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
                 promoTypes.setVisibility(visibility);
                 break;
             case R.id.saveBtn:
+                task.noGoods = false;
+                task.done = true;
+                task.edit = false;
+                task.sync = false;
+                main.getPageController().setPage(PageController.Page.ORDER);
                 break;
             case R.id.noGoodsBtn:
+                task.noGoods = true;
+                task.done = true;
+                task.edit = false;
+                task.sync = false;
+                main.getPageController().setPage(PageController.Page.ORDER);
                 break;
             case R.id.cancelBtn:
                 task.set(backup);

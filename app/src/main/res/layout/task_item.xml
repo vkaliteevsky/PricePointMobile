@@ -102,23 +102,38 @@
                 android:layout_marginBottom="10dp">
 
                 <ImageView
-                    android:layout_marginTop="3dp"
+                    android:id="@+id/comment"
                     android:layout_width="13dp"
                     android:layout_height="13dp"
-                    android:layout_marginRight="10dp"
+                    android:layout_marginRight="7dp"
                     android:src="@drawable/comment"/>
-                <ImageView
+                <FrameLayout
                     android:id="@+id/photos"
                     android:layout_width="15dp"
                     android:layout_height="13dp"
-                    android:layout_gravity="right"
-                    android:src="@drawable/photostaken"/>
+                    android:layout_gravity="right">
+
+                    <ImageView
+                        android:layout_width="15dp"
+                        android:layout_height="13dp"
+                        android:src="@drawable/photostaken"/>
+
+                    <TextView
+                        android:id="@+id/photosCount"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:text="4"
+                        android:textSize="8sp"
+                        android:gravity="center"
+                        android:textColor="@android:color/white"/>
+                </FrameLayout>
+
             </LinearLayout>
 
             <ImageButton
                 android:id="@+id/status"
-                android:layout_width="25dp"
-                android:layout_height="25dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:layout_gravity="right"
                 android:foregroundGravity="bottom"
                 android:src="@drawable/refresh"

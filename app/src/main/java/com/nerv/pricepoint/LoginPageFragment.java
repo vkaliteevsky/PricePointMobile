@@ -8,7 +8,9 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 
 /**
  * Created by NERV on 10.10.2017.
@@ -21,6 +23,8 @@ public class LoginPageFragment extends CustomFragment implements View.OnClickLis
     private DatabaseManager databaseManager;
     private PageController pageController;
     private boolean transitionFlag = true;
+    private ProgressBar progressBar;
+    private Button logInBtn;
 
     @Override
     public void init(MainActivity main) {
@@ -35,9 +39,13 @@ public class LoginPageFragment extends CustomFragment implements View.OnClickLis
 
         bgAnimation();
 
-        view.findViewById(R.id.logInBtn).setOnClickListener(this);
+        logInBtn = (Button)  view.findViewById(R.id.logInBtn);
+        logInBtn.setOnClickListener(this);
         loginET = (EditText) view.findViewById(R.id.loginET);
         passwordET = (EditText) view.findViewById(R.id.passwordET);
+        progressBar = (ProgressBar) view.findViewById(R.id.progressBar);
+
+        progressBar.setVisibility(View.GONE);
 
         return view;
     }
@@ -101,6 +109,13 @@ public class LoginPageFragment extends CustomFragment implements View.OnClickLis
                 //return;
             }
 
+            loginET.setEnabled(false);
+            passwordET.setEnabled(false);
+            logInBtn.setEnabled(false);
+            logInBtn.setText("");
+            progressBar.setVisibility(View.VISIBLE);
+
+
             databaseManager.checkLoginPassword("box@delcom.ru", "123456", new DatabaseManager.LogInCallback() {
                 @Override
                 public void logInCallback(DatabaseManager.LogInResult result) {
@@ -116,6 +131,8 @@ public class LoginPageFragment extends CustomFragment implements View.OnClickLis
                         case USER_NOT_FOUND:
                             break;
                         case WRONG_PASSWORD:
+                            break;
+                        case NO_CONNECTION:
                             break;
                     }
                 }

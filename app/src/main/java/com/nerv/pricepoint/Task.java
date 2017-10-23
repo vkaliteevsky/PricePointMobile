@@ -162,6 +162,7 @@ public class Task {
     public String latitude = "";
     public String longitude= "";
     public String ean = "";
+    public String eanscan = "";
     public String description = "";
 
     public int photosCount = 0;
@@ -174,6 +175,7 @@ public class Task {
     public boolean sync;
 
     public String dbId;
+    public String eTag;
 
     public String category;
 
@@ -185,8 +187,8 @@ public class Task {
 
     public Task(JSONObject fields, Order order) {
         try {
-            dbId = fields.getString("GUID");
-
+            dbId = fields.getString("ID");
+            eTag = fields.getJSONObject("__metadata").getString("etag");
             costReg = fields.optDouble("task_costreg", 0);
             costCard = fields.optDouble("task_costcard", 0);
             costPromo = fields.optDouble("task_costpromo", 0);
@@ -196,6 +198,7 @@ public class Task {
             category = Utils.nullToEmpty(fields.optString("task_class", ""));
             ean = Utils.nullToEmpty(fields.optString("task_ean", ""));
             description = Utils.nullToEmpty(fields.optString("Title", ""));
+            eanscan = Utils.nullToEmpty(fields.optString("task_eanscan", ""));
             photosCount = fields.optInt("task_photo", 0);
             promo = fields.optInt("task_stock", -1);
             id = fields.optInt("task_id", 0);
@@ -231,6 +234,16 @@ public class Task {
             }
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void updatePhotosCount() {
+        photosCount = 0;
+
+        for (Img i : imgs.values()) {
+            if (i.type != ImgType.ICON && (!i.url.isEmpty() || !i.path.isEmpty())) {
+                photosCount++;
+            }
         }
     }
 

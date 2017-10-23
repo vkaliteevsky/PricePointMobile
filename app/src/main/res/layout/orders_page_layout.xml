@@ -10,7 +10,29 @@
         android:orientation="vertical"
         android:layout_width="1dp"
         android:layout_height="match_parent"
-        android:background="@android:color/holo_purple">
+        android:background="@drawable/bg_gradient">
+
+        <TextView
+            android:id="@+id/username"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/pageTitleSize"
+            android:textColor="@android:color/white"
+            android:text="USERNAME"
+            android:textAllCaps="true"
+            android:letterSpacing="0.15"
+            android:layout_marginTop="@dimen/pageTitleMarginTop"
+            android:layout_marginBottom="@dimen/pageTitleMarginBottomOrderPage"
+            android:textSize="13sp"
+            android:gravity="center"
+            android:layout_alignParentTop="true"/>
+
+        <Button
+            android:id="@+id/logOutBtn"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:text="ВЫЙТИ"
+            android:textSize="14sp"
+            android:background="@android:color/transparent"/>
 
     </LinearLayout>
 
@@ -20,7 +42,7 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/bgColor">
+        android:background="@drawable/bg_gradient">
 
         <LinearLayout
             android:orientation="vertical"
@@ -58,7 +80,7 @@
                 android:id="@+id/ordersRV"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/bgColor">
+                android:background="@android:color/transparent">
             </android.support.v7.widget.RecyclerView>
 
         </LinearLayout>
