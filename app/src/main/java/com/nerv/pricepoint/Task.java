@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -14,10 +15,14 @@ import java.util.LinkedList;
  * Created by NERV on 12.10.2017.
  */
 
-public class Task {
+public class Task implements Serializable{
     public enum ImgType {
-        NONE, ICON, PRICE, GOODS, BARCODE, SHELF;
+        NONE(0), ICON(1), PRICE(2), GOODS(3), BARCODE(4), SHELF(5);
 
+        private int i;
+        ImgType(int i) {
+            this.i = i;
+        }
         public static ImgType getType(String v) {
             switch (v) {
                 case "A":
@@ -75,7 +80,7 @@ public class Task {
     }
 
 
-    public class Img {
+    public class Img implements Serializable{
         public String url = "";
         public String path = "";
         public boolean changed = false;

@@ -1,9 +1,17 @@
 package com.nerv.pricepoint;
 
+import android.os.Environment;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -16,7 +24,7 @@ import java.util.TreeMap;
  * Created by NERV on 11.10.2017.
  */
 
-public class Order {
+public class Order implements Serializable{
     public String retail = "";
     public String city = "";
     public String address = "";
@@ -58,6 +66,29 @@ public class Order {
                 }
 
                 order.tasks.add(new Task(tasks.getJSONObject(i), order));
+
+                /*Task t = new Task(tasks.getJSONObject(i), order);
+
+                try {
+                    String filePath = Environment.getExternalStorageDirectory().getAbsolutePath();
+                    filePath += "/PricePoint/test.t";
+                    FileOutputStream fileOut =
+                            new FileOutputStream(filePath);
+                    ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                    out.writeObject(t);
+                    out.close();
+                    fileOut.close();
+
+                    FileInputStream fileIn = new FileInputStream(filePath);
+                    ObjectInputStream in = new ObjectInputStream(fileIn);
+                    t = (Task) in.readObject();
+                    in.close();
+                    fileIn.close();
+                }catch(IOException e) {
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }*/
             }
         } catch (JSONException e) {
             e.printStackTrace();

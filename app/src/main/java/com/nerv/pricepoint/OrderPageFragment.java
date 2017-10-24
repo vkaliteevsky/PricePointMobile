@@ -203,15 +203,14 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
                 main.getDatabaseManager().selectedTask = task;
                 main.getPageController().setPage(PageController.Page.TASK);
             } else {
-                main.getDatabaseManager().sendData(task, null);
-                /*if (task.done && !task.sync) {
+                //if (task.done && !task.sync) {
                     main.getDatabaseManager().sendData(task, new DatabaseManager.Callback() {
                         @Override
                         public void callback() {
 
                         }
                     });
-                }*/
+                //}
             }
         }
     }

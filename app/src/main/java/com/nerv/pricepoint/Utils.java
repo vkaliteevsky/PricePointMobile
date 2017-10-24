@@ -8,6 +8,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -36,9 +37,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.text.ParseException;
@@ -87,7 +91,7 @@ public class Utils {
     }
 
     public static void sendJSONObject(Context context, final String accessToken
-            , final String formDigestValue, final String eTag, final String data, String url
+            , final String formDigestValue, final String data, String url
             , Response.Listener<String> responceListener, Response.ErrorListener errorListener) {
         RequestQueue queue = Volley.newRequestQueue(context);
 
@@ -112,6 +116,40 @@ public class Utils {
                 headers.put("X-HTTP-Method", "MERGE");
                 headers.put("content-type", "application/json;odata=verbose");
                 headers.put("content-length", String.valueOf(data.length()));
+                return headers;
+            }
+        };
+
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                3000,
+                2,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+        queue.add(request);
+    }
+
+    public static void sendImage(Context context, final String accessToken
+            , final String formDigestValue, final byte[] data, final boolean update, String url
+            , Response.Listener<String> responceListener, Response.ErrorListener errorListener) {
+        RequestQueue queue = Volley.newRequestQueue(context);
+
+        StringRequest request = new StringRequest(Request.Method.POST, url, responceListener, errorListener) {
+            @Override
+            public byte[] getBody() throws AuthFailureError {
+                return data;
+            }
+
+
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", "Bearer " + accessToken);
+                headers.put("X-RequestDigest", formDigestValue);
+
+                if (update) {
+                    headers.put("X-HTTP-Method", "PUT");
+                }
+
+                headers.put("content-length", String.valueOf(data.length));
                 return headers;
             }
         };
@@ -340,5 +378,57 @@ public class Utils {
 
     public static String formattedPrice(double price) {
         return price == 0 ? "..." : String.valueOf(price).replace(".", ",") + "\u20BD";
+    }
+
+    public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    || (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
+    }
+
+    public static void serialize(String filePath, Object obj) {
+        try {
+            FileOutputStream fileOut =
+                    new FileOutputStream(filePath);
+            ObjectOutputStream out = new ObjectOutputStream(fileOut);
+            out.writeObject(obj);
+            out.close();
+            fileOut.close();
+        } catch (Exception e) {
+
+        }
+    }
+
+    public static Object deserialize(String filePath) {
+        Object res = null;
+
+        try {
+            FileInputStream fileIn = new FileInputStream(filePath);
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            res = in.readObject();
+            in.close();
+            fileIn.close();
+        } catch (Exception e) {
+
+        }
+
+        return res;
     }
 }

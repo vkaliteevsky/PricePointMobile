@@ -3,6 +3,10 @@ package com.nerv.pricepoint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Environment;
+import android.util.Base64;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -15,11 +19,15 @@ import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.PromptBehavior;
 
+import org.apache.http.protocol.HTTP;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -58,6 +66,10 @@ public class DatabaseManager {
 
     private final static String STOCK_FIELDS = "?$select=Title,stock_id";
     private final static String STOCK_ITEMS = "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('Stock')/items" + STOCK_FIELDS;
+    private final static String UPDATE_IMAGE = "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle(%27Task%27)" +
+            "/items(@taskId)/AttachmentFiles(%27@fname.jpg%27)/$value";
+    private final static String ADD_IMAGE = "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle(%27Task%27)" +
+            "/items(@taskId)/AttachmentFiles/add(FileName=%27@fname.jpg%27)";
 
 
     private AuthenticationCallback<AuthenticationResult> callback = new AuthenticationCallback<AuthenticationResult>() {
@@ -152,48 +164,104 @@ public class DatabaseManager {
         String data = "{'__metadata':{'type':'SP.Data.TaskListItem'}}";
         JSONObject json = null;
 
+
         try {
             json = new JSONObject(data);
 
-            json.put("Title", "we");
-
-            /*json.put("task_costreg", task.costReg);
+            json.put("task_costreg", task.costReg);
             json.put("task_costcard", task.costCard);
             json.put("task_costpromo", task.costPromo);
-            json.put("task_commet", task.comment);
+            try {
+                json.put("task_commet", task.comment.getBytes("UTF-8"));
+            } catch (Exception e) {
+
+            }
             json.put("task_lat", task.latitude);
             json.put("task_lon", task.longitude);
             json.put("task_photo", task.photosCount);
             json.put("task_edit", false);
             json.put("task_no", task.noGoods);
             json.put("task_done", true);
-            json.put("task_stock", task.promo);
+            if (task.promo != -1) {
+                json.put("task_stock", task.promo);
+            }
             json.put("task_sync", true);
-            json.put("task_eanscan", task.eanscan);*/
+            json.put("task_eanscan", task.eanscan);
 
             Utils.sendJSONObject(activity
                     , authRes.getAccessToken()
                     , formDigestValue
-                    , "\"56\""
                     , json.toString()
                     , "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle(%27Task%27)/items(" + task.dbId + ")"
                     , new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
                             task.sync = true;
+                            callback.callback();
                         }
                     }
                     , new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
                             task.sync = false;
-                            String msg = new String(error.networkResponse.data);
-                            Log.d("", "");
+                            callback.callback();
+
                         }
                     });
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        sendImage(0, task);
+    }
+
+    private void sendImage(final int imgIndex, final Task task) {
+        Task.ImgType type = Task.ImgType.getPhotoType(imgIndex);
+        Task.Img img;
+
+        if (type == Task.ImgType.NONE) {
+            return;
+        } else {
+            img = task.imgs.get(type);
+
+            if (!img.changed) {
+                sendImage(imgIndex + 1, task);
+                return;
+            }
+        }
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+
+        options.inJustDecodeBounds  = true;
+        BitmapFactory.decodeFile(img.path, options);
+        options.inSampleSize = Utils.calculateInSampleSize(options, Utils.MAX_PHOTO_SIZE, Utils.MAX_PHOTO_SIZE);
+        options.inJustDecodeBounds = false;
+        options.inPreferredConfig = Bitmap.Config.RGB_565;
+        Bitmap bitmap = BitmapFactory.decodeFile(img.path, options);
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream);
+        byte[] byteArray = byteArrayOutputStream .toByteArray();
+        Utils.sendImage(activity
+                , authRes.getAccessToken()
+                , formDigestValue
+                , byteArray//Base64.encode(byteArray, Base64.DEFAULT)
+                , !img.url.isEmpty()
+                , img.url.isEmpty()
+                        ? ADD_IMAGE.replace("@taskId", task.dbId).replace("@fname", img.fname())
+                        : UPDATE_IMAGE.replace("@taskId", task.dbId).replace("@fname", img.fname())
+                , new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        sendImage(imgIndex + 1, task);
+                    }
+                }
+                , new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("", "");
+                    }
+                });
     }
 
     public void retrievePromos(String url) {
@@ -223,6 +291,39 @@ public class DatabaseManager {
                 });
     }
 
+    private boolean retrieveUserTasksFromCache() {
+        String ordersPath = appSettings.getString("orders" + String.valueOf(userId), "");
+
+        if (ordersPath.isEmpty()) {
+            return false;
+        }
+
+        Object res = Utils.deserialize(ordersPath);
+
+        if (res == null) {
+            return false;
+        }
+
+        orders = (ArrayList<Order>) res;
+
+        return true;
+    }
+
+    private void saveUserTasksToCache() {
+        String filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/PricePoint/";
+        File createDir = new File(filePath);
+        createDir.mkdirs();
+
+        String name = "orders" + String.valueOf(userId);
+        filePath += name + ".t";
+
+        Utils.serialize(filePath, orders);
+
+        SharedPreferences.Editor editor = appSettings.edit();
+        editor.putString(name, filePath);
+        editor.apply();
+    }
+
     public void retrieveUserTasks(final Callback callback) {
         if (userId == -1) {
             return;
@@ -232,9 +333,14 @@ public class DatabaseManager {
 
         retrievePromos(STOCK_ITEMS);
 
+        if (retrieveUserTasksFromCache()) {
+            callback.callback();
+            return;
+        }
+
         Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.GET
                 , "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('Task')/items" +
-                        "?$filter=task_idman%20eq%20" + String.valueOf(1) /*+ TASK_FIELDS*/ + "&$expand=AttachmentFiles"
+                        "?$filter=task_idman%20eq%20" + String.valueOf(userId) + TASK_FIELDS + "&$expand=AttachmentFiles"
                 , new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -251,6 +357,8 @@ public class DatabaseManager {
                                 for (Order o : orders) {
                                     o.sortTasksByCategory();
                                 }
+
+                                saveUserTasksToCache();
 
                                 callback.callback();
                             }
@@ -286,6 +394,8 @@ public class DatabaseManager {
                                 for (Order o : orders) {
                                     o.sortTasksByCategory();
                                 }
+
+                                saveUserTasksToCache();
 
                                 callback.callback();
                             }
