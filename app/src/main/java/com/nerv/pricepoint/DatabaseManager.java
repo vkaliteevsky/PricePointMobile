@@ -6,29 +6,27 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Environment;
-import android.util.Base64;
+import android.os.Message;
 import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
 import com.microsoft.aad.adal.AuthenticationCallback;
 import com.microsoft.aad.adal.AuthenticationContext;
 import com.microsoft.aad.adal.AuthenticationException;
 import com.microsoft.aad.adal.AuthenticationResult;
 import com.microsoft.aad.adal.PromptBehavior;
 
-import org.apache.http.protocol.HTTP;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -62,10 +60,10 @@ public class DatabaseManager {
     private final static String APP_PREFERENCES = "appSettings";
     private final static String TASK_FIELDS = "&$select=task_start,task_end,task_retail,task_city,task_address,task_idorder," +
             "task_mark,GUID,task_costreg,task_costcard,task_costpromo,task_commet,task_lat,task_lon,task_class,task_ean," +
-            "Title,task_photo,task_id,task_edit,task_no,task_done,task_sync,task_stock,task_eanscan,ID";
+            "Title,task_photo,task_id,task_edit,task_no,task_done,task_sync,task_stock,task_eanscan,ID,Modified";
 
     private final static String STOCK_FIELDS = "?$select=Title,stock_id";
-    private final static String STOCK_ITEMS = "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('Stock')/items" + STOCK_FIELDS;
+    private final static String STOCK_ITEMS = "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle(%27Stock%27)/items" + STOCK_FIELDS;
     private final static String UPDATE_IMAGE = "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle(%27Task%27)" +
             "/items(@taskId)/AttachmentFiles(%27@fname.jpg%27)/$value";
     private final static String ADD_IMAGE = "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle(%27Task%27)" +
@@ -113,10 +111,14 @@ public class DatabaseManager {
     public AuthenticationContext authContext;
     public AuthenticationResult authRes;
     private String aadUserId = "";
-    private SharedPreferences appSettings;
+    public SharedPreferences appSettings;
 
     public Order selectedOrder;
     public Task selectedTask;
+    public OrderPageFragment.TaskHolder selectedTaskHolder;
+    public Date curDate = new Date();
+    public Date dDate = new Date();
+    public int D = 0;
 
     private String formDigestValue = "";
 
@@ -125,6 +127,37 @@ public class DatabaseManager {
 
         authContext = new AuthenticationContext(activity, AUTHORITY, true);
         appSettings = activity.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
+        D = appSettings.getInt("D", 0);
+
+        getCurDate();
+    }
+
+    private void getCurDate() {
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                SntpClient client = new SntpClient();
+
+                if (client.requestTime("0.ru.pool.ntp.org", 30000)) {
+                    long time = client.getNtpTime();
+
+                    Calendar calendar = Calendar.getInstance();
+                    try {
+                        calendar.setTimeInMillis(time);
+                        curDate = calendar.getTime();
+                        calendar.add(Calendar.DATE, 4);
+                        dDate = calendar.getTime();
+                    } catch (Exception e) {
+                    }
+                } else {
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTime(curDate);
+                    calendar.add(Calendar.DATE, D);
+                    dDate = calendar.getTime();
+                }
+            }
+        });
+        t.start();
     }
 
     private void saveAADUserId() {
@@ -168,20 +201,31 @@ public class DatabaseManager {
         try {
             json = new JSONObject(data);
 
-            json.put("task_costreg", task.costReg);
-            json.put("task_costcard", task.costCard);
-            json.put("task_costpromo", task.costPromo);
+            if (task.costReg != 0) {
+                json.put("task_costreg", task.costReg);
+            }
+
+            if (task.costCard != 0) {
+                json.put("task_costcard", task.costCard);
+            }
+
+            if (task.costPromo != 0) {
+                json.put("task_costpromo", task.costPromo);
+            }
+
             try {
                 json.put("task_commet", task.comment.getBytes("UTF-8"));
             } catch (Exception e) {
 
             }
+
             json.put("task_lat", task.latitude);
             json.put("task_lon", task.longitude);
             json.put("task_photo", task.photosCount);
             json.put("task_edit", false);
             json.put("task_no", task.noGoods);
             json.put("task_done", true);
+
             if (task.promo != -1) {
                 json.put("task_stock", task.promo);
             }
@@ -277,6 +321,8 @@ public class DatabaseManager {
 
                             if (d.has("__next")) {
                                 retrievePromos(d.getString("__next"));
+                            } else {
+                                //Utils.serialize(Utils.ROOT_DIR + "promos.p", promos);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -291,37 +337,155 @@ public class DatabaseManager {
                 });
     }
 
-    private boolean retrieveUserTasksFromCache() {
+    private boolean retrieveUserTasksFromCache(final Callback callback) {
         String ordersPath = appSettings.getString("orders" + String.valueOf(userId), "");
+        final File[] dirs = Utils.getFilesList(ordersPath);
 
-        if (ordersPath.isEmpty()) {
+        if (dirs == null || dirs != null && dirs.length == 0) {
             return false;
         }
 
-        Object res = Utils.deserialize(ordersPath);
 
-        if (res == null) {
-            return false;
-        }
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                orders = new ArrayList<>();
 
-        orders = (ArrayList<Order>) res;
+                for (int i = 0; i < dirs.length; i++) {
+                    if (dirs[i].isDirectory()) {
+                        String orderPath = dirs[i].getPath();
+                        File[] files = Utils.getFilesList(orderPath);
+                        ArrayList<Task> tasks = new ArrayList<>();
+                        Order order = null;
+
+                        for (int j = 0; j < files.length; j++) {
+                            if (files[j].isFile()) {
+                                String filePath = files[j].getPath();
+                                Object obj = Utils.deserialize(filePath);
+
+                                if (files[j].getName().endsWith(".o")) {
+                                    order = (Order) obj;
+                                    ordersHM.put(order.orderId, order);
+                                } else {
+                                    Task t = (Task) obj;
+                                    t.taskFile = filePath;
+                                    tasks.add(t);
+                                }
+                            }
+                        }
+
+                        if (order != null) {
+                            order.tasks = tasks;
+                            order.sortTasksByCategory();
+                            orders.add(order);
+                        }
+                    }
+                }
+
+                retrieveEditTrueTask(callback, false);
+            }
+        });
+        t.start();
 
         return true;
     }
 
+    private void retrieveEditTrueTask(final Callback callback, final boolean save) {
+        Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.GET
+                , "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle(%27Task%27)/items" +
+                        "?$filter=task_idman%20eq%20" + String.valueOf(userId)
+                        + "%20and%20%28task_edit%20eq%201"
+                        + "%20or%20%28task_start%20ge%20datetime%27" + Utils.dateToDBString(curDate) + "%27%20" +
+                        "and%20task_start%20le%20datetime%27" + Utils.dateToDBString(dDate) + "%27%20and%20task_end%20ge%20datetime%27" + Utils.dateToDBString(curDate) + "%27%29%29"
+                        + TASK_FIELDS + "&$expand=AttachmentFiles"
+                , new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            JSONArray res = response.getJSONObject("d").getJSONArray("results");
+
+                            for (int i = 0; i < res.length(); i++) {
+                                JSONObject fields = res.getJSONObject(i);
+                                int orderId = fields.getInt("task_idorder");
+                                int taskId = fields.getInt("task_id");
+                                boolean edit = fields.getBoolean("task_edit");
+
+                                if (ordersHM.containsKey(orderId)) {
+                                    Order o = ordersHM.get(orderId);
+
+                                    if (o.taskById.containsKey(taskId) && edit) {
+                                        o.taskById.get(taskId).update(fields);
+                                    }
+
+                                    if (!o.taskById.containsKey(taskId)) {
+                                        o.addTask(new Task(fields));
+                                    }
+                                } else {
+                                    Order o = new Order(fields);
+                                    o.addTask(new Task(fields));
+                                    orders.add(o);
+                                    ordersHM.put(o.orderId, o);
+                                }
+                            }
+
+                            if (!save) {
+                                Message msg = MainActivity.handler.obtainMessage(MainActivity.DB_CALLBACK, callback);
+                                msg.sendToTarget();
+                            } else {
+                                saveTasks(callback);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                , new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        String msg = new String(error.networkResponse.data);
+                        Log.d("","");
+                    }
+                });
+    }
+
     private void saveUserTasksToCache() {
-        String filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/PricePoint/";
-        File createDir = new File(filePath);
+        String userDir = Environment.getExternalStorageDirectory().getAbsolutePath()
+                + "/PricePoint/user" + String.valueOf(userId) + "/";
+        File createDir = new File(userDir);
         createDir.mkdirs();
 
-        String name = "orders" + String.valueOf(userId);
-        filePath += name + ".t";
+        for (Order o : orders) {
+            String orderDir = userDir + String.valueOf(o.orderId) + "/";
+            createDir = new File(orderDir);
+            createDir.mkdirs();
 
-        Utils.serialize(filePath, orders);
+            String orderFilePath = orderDir + "order" + String.valueOf(o.orderId) + ".o";
+            o.orderFile = orderFilePath;
+            o.orderDir = orderDir;
+            Utils.serialize(orderFilePath, o);
+
+            for (Task t: o.tasks) {
+                String filePath = orderDir + "task" + String.valueOf(t.id) + ".t";
+                t.taskFile = filePath;
+                Utils.serialize(filePath, t);
+            }
+        }
 
         SharedPreferences.Editor editor = appSettings.edit();
-        editor.putString(name, filePath);
+        editor.putString("orders" + String.valueOf(userId), userDir);
         editor.apply();
+    }
+
+    private void saveTasks(final Callback callback) {
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                saveUserTasksToCache();
+                Message msg = MainActivity.handler.obtainMessage(MainActivity.DB_CALLBACK, callback);
+                msg.sendToTarget();
+            }
+        });
+        t.start();
     }
 
     public void retrieveUserTasks(final Callback callback) {
@@ -333,14 +497,16 @@ public class DatabaseManager {
 
         retrievePromos(STOCK_ITEMS);
 
-        if (retrieveUserTasksFromCache()) {
-            callback.callback();
+        if (retrieveUserTasksFromCache(callback)) {
             return;
         }
 
         Utils.requestJSONObject(activity, authRes.getAccessToken(), Request.Method.GET
                 , "https://pointbox.sharepoint.com/boxpoint/_api/web/lists/GetByTitle('Task')/items" +
-                        "?$filter=task_idman%20eq%20" + String.valueOf(userId) + TASK_FIELDS + "&$expand=AttachmentFiles"
+                        "?$filter=task_idman%20eq%20" + String.valueOf(userId)
+                        + "%20and%20task_start%20le%20datetime%27" + Utils.dateToDBString(dDate) + "%27"
+                        + "%20and%20task_end%20ge%20datetime%27" + Utils.dateToDBString(curDate) + "%27"
+                        + TASK_FIELDS + "&$expand=AttachmentFiles"
                 , new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
@@ -358,9 +524,7 @@ public class DatabaseManager {
                                     o.sortTasksByCategory();
                                 }
 
-                                saveUserTasksToCache();
-
-                                callback.callback();
+                                retrieveEditTrueTask(callback, true);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -370,6 +534,7 @@ public class DatabaseManager {
                 , new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        String msg = new String(error.networkResponse.data);
                         Log.d("","");
                     }
                 });
@@ -389,15 +554,12 @@ public class DatabaseManager {
                                 retrieveUserTasksNext(d.getString("__next"), callback);
                             } else {
                                 orders = new ArrayList<>(ordersHM.values());
-                                ordersHM = null;
 
                                 for (Order o : orders) {
                                     o.sortTasksByCategory();
                                 }
 
-                                saveUserTasksToCache();
-
-                                callback.callback();
+                                retrieveEditTrueTask(callback, true);
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -441,6 +603,13 @@ public class DatabaseManager {
                                     userLogin = login;
                                     userPassword = user_pass;
                                     userName = fields.optString("Title");
+
+                                    SharedPreferences.Editor editor = appSettings.edit();
+                                    editor.putInt("lastUserId", userId);
+                                    editor.putString("lastUserName", userName);
+                                    editor.putString("lastUserLogin", login);
+                                    editor.putString("lastUserPass", userPassword);
+                                    editor.apply();
 
                                     callback.logInCallback(LogInResult.OK);
                                 } else {

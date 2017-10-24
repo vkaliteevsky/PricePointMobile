@@ -48,7 +48,7 @@ interface CategoryControlInterface {
 
 public class OrderPageFragment extends CustomFragment implements View.OnClickListener, CategoryControlInterface {
 
-    private static class TaskHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public static class TaskHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private ImageView icon;
         private TextView description;
@@ -60,6 +60,7 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
         private View photos;
         private TextView photosCount;
         private ImageButton status;
+        private View updateProgressBar;
 
         private Task task;
         private MainActivity main;
@@ -84,6 +85,7 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
             photos = itemView.findViewById(R.id.photos);
             photosCount = (TextView) itemView.findViewById(R.id.photosCount);
             status = (ImageButton) itemView.findViewById(R.id.status);
+            updateProgressBar = itemView.findViewById(R.id.updateProgressBar);
 
             status.setOnClickListener(this);
         }
@@ -200,17 +202,24 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
         @Override
         public void onClick(View v) {
             if (v.getId() != R.id.status) {
-                main.getDatabaseManager().selectedTask = task;
+                DatabaseManager dbManager = main.getDatabaseManager();
+                dbManager.selectedTask = task;
+                dbManager.selectedTaskHolder = this;
                 main.getPageController().setPage(PageController.Page.TASK);
             } else {
-                //if (task.done && !task.sync) {
+                if (task.done && !task.sync) {
+                    status.setVisibility(View.GONE);
+                    updateProgressBar.setVisibility(View.VISIBLE);
+
                     main.getDatabaseManager().sendData(task, new DatabaseManager.Callback() {
                         @Override
                         public void callback() {
-
+                            status.setImageResource(task.sync ? R.drawable.check : R.drawable.refresh);
+                            status.setVisibility(View.VISIBLE);
+                            updateProgressBar.setVisibility(View.GONE);
                         }
                     });
-                //}
+                }
             }
         }
     }
@@ -321,6 +330,7 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
     private View space;
     private TextView categoryName;
     private SideMenuType openedSideMenu = SideMenuType.NONE;
+    private Order selectedOrder;
 
     @Override
     public void init(MainActivity main) {
@@ -330,22 +340,36 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.order_page_layout, null);
+        if (view == null) {
+            view = inflater.inflate(R.layout.order_page_layout, null);
 
-        tasksRV = (RecyclerView) view.findViewById(R.id.tasksRV);
-        tasksRV.setLayoutManager(new LinearLayoutManager(main, LinearLayoutManager.VERTICAL, false));
-        taskRecyclerAdapter = new TaskRecyclerAdapter(main, main.getDatabaseManager().selectedOrder.tasks);
-        tasksRV.setAdapter(taskRecyclerAdapter);
+            view.findViewById(R.id.leftSideMenuBtn).setOnClickListener(this);
+            view.findViewById(R.id.rightSideMenuBtn).setOnClickListener(this);
+            view.findViewById(R.id.allCategories).setOnClickListener(this);
+        }
 
-        tasksLayout = view.findViewById(R.id.tasksLayout);
-        categoryName = (TextView) view.findViewById(R.id.category);
-        categoryName.setText("ВСЕ");
+        if (selectedOrder != main.getDatabaseManager().selectedOrder) {
+            selectedOrder = main.getDatabaseManager().selectedOrder;
 
-        initSideMenus();
+            tasksRV = (RecyclerView) view.findViewById(R.id.tasksRV);
+            tasksRV.setLayoutManager(new LinearLayoutManager(main, LinearLayoutManager.VERTICAL, false));
+            taskRecyclerAdapter = new TaskRecyclerAdapter(main, selectedOrder.tasks);
+            tasksRV.setAdapter(taskRecyclerAdapter);
 
-        view.findViewById(R.id.leftSideMenuBtn).setOnClickListener(this);
-        view.findViewById(R.id.rightSideMenuBtn).setOnClickListener(this);
-        view.findViewById(R.id.allCategories).setOnClickListener(this);
+            tasksLayout = view.findViewById(R.id.tasksLayout);
+            categoryName = (TextView) view.findViewById(R.id.category);
+            categoryName.setText("ВСЕ");
+
+            initSideMenus();
+        }
+
+        main.getPageController().backPressListener = new PageController.OnBackPressListener() {
+            @Override
+            public void backPressed() {
+                main.getPageController().setPage(PageController.Page.ORDERS);
+            }
+        };
+
 
         return view;
     }
@@ -392,7 +416,7 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
         categoryRV.setLayoutManager(new LinearLayoutManager(main, LinearLayoutManager.VERTICAL, false));
 
         CategoryRecyclerAdapter categoryRecyclerAdapter = new CategoryRecyclerAdapter(
-                new ArrayList<>(main.getDatabaseManager().selectedOrder.categories.keySet()), this);
+                new ArrayList<>(selectedOrder.categories.keySet()), this);
         categoryRV.setAdapter(categoryRecyclerAdapter);
 
         rightSideMenu = view.findViewById(R.id.rightSideMenu);
@@ -422,15 +446,6 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-
-        view = null;
-        tasksRV = null;
-        taskRecyclerAdapter = null;
-        leftSideMenu = null;
-        rightSideMenu = null;
-        tasksLayout = null;
-        space = null;
-        categoryName = null;
     }
 
     @Override

@@ -2,12 +2,14 @@ package com.nerv.pricepoint;
 
 import android.net.Uri;
 import android.os.Message;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -182,7 +184,12 @@ public class Task implements Serializable{
     public String dbId;
     public String eTag;
 
+    public Date startDate;
+    public Date endDate;
+
     public String category;
+    transient public String taskFile = "";
+    public Date modified;
 
     public HashMap<ImgType, Img> imgs = new HashMap<>();
 
@@ -190,7 +197,11 @@ public class Task implements Serializable{
 
     }
 
-    public Task(JSONObject fields, Order order) {
+    public Task(JSONObject fields) {
+        init(fields);
+    }
+
+    private void init(JSONObject fields) {
         try {
             dbId = fields.getString("ID");
             eTag = fields.getJSONObject("__metadata").getString("etag");
@@ -211,6 +222,9 @@ public class Task implements Serializable{
             noGoods = fields.getBoolean("task_no");
             done = fields.getBoolean("task_done");
             sync = fields.getBoolean("task_sync");
+            modified = Utils.stringToDate(fields.optString("Modified"));
+            startDate = Utils.stringToDate(fields.optString("task_start"));
+            endDate = Utils.stringToDate(fields.optString("task_end"));
 
             JSONArray files = fields.getJSONObject("AttachmentFiles").getJSONArray("results");
 
@@ -278,6 +292,17 @@ public class Task implements Serializable{
         }
 
         return task;
+    }
+
+    public void update(JSONObject fields) {
+        Date m = Utils.stringToDate(fields.optString("Modified"));
+
+        if (modified.compareTo(m) == -1) {
+            init(fields);
+            done = false;
+            sync = false;
+            Utils.serialize(taskFile, this);
+        }
     }
 
     public void set(Task task) {

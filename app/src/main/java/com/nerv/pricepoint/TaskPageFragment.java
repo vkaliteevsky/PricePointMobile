@@ -21,6 +21,7 @@ import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -323,6 +324,8 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
 
     private MainActivity main;
     public boolean animateBg = true;
+    private LinearLayout taskInfo;
+    private View space;
 
     @Override
     public void init(MainActivity main) {
@@ -398,9 +401,12 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
                     .spaceSize(0)
                     .build();
 
-            LinearLayout pricesLayout = (LinearLayout) view.findViewById(R.id.prices);
+            taskInfo = (LinearLayout) view.findViewById(R.id.taskInfo);
+            space = view.findViewById(R.id.space);
+
+            /*LinearLayout pricesLayout = (LinearLayout) view.findViewById(R.id.prices);
             LayoutTransition lt = pricesLayout.getLayoutTransition();
-            lt.enableTransitionType(LayoutTransition.CHANGING);
+            lt.enableTransitionType(LayoutTransition.CHANGING);*/
         } else {
             for (int i = 0; i < 4; i++) {
                 PhotoItemFragment f = (PhotoItemFragment) photoItemFragments.get(i);
@@ -408,6 +414,28 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
                 f.setImg(task.imgs.get(Task.ImgType.getPhotoType(i)));
             }
         }
+
+        ViewTreeObserver vto = taskInfo.getViewTreeObserver();
+        vto.addOnGlobalLayoutListener (new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                taskInfo.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                int h = taskInfo.getHeight() + Utils.convertDpToPixels(20, main);
+                ViewGroup.LayoutParams params = space.getLayoutParams();
+
+                if (h > Utils.SCREEN_HEIGHT) {
+                    params.height = 0;
+                } else {
+                    int value = Utils.SCREEN_HEIGHT - h;
+
+                    if (value != 0) {
+                        params.height = value;
+                    }
+                }
+
+                space.setLayoutParams(params);
+            }
+        });
 
         fillGoodsInfo();
 
@@ -435,8 +463,16 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
 
         animateBg = true;
 
-        bgAnimation((TransitionDrawable) (view.findViewById(R.id.bg)).getBackground(), true);
+        bgAnimation((TransitionDrawable) (view.findViewById(R.id.taskInfo)).getBackground(), true);
         bgAnimation((TransitionDrawable) (view.findViewById(R.id.saveBtn)).getBackground(), true);
+
+        main.getPageController().backPressListener = new PageController.OnBackPressListener() {
+            @Override
+            public void backPressed() {
+                task.set(backup);
+                main.getPageController().setPage(PageController.Page.ORDER);
+            }
+        };
 
         return view;
     }
@@ -497,23 +533,46 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
     public void onClick(final View v) {
         switch (v.getId()) {
             case R.id.promoBtn:
+                ViewTreeObserver vto = taskInfo.getViewTreeObserver();
+                vto.addOnGlobalLayoutListener (new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        taskInfo.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                        int h = taskInfo.getHeight() + Utils.convertDpToPixels(20, main);
+                        ViewGroup.LayoutParams params = space.getLayoutParams();
+
+                        if (h > Utils.SCREEN_HEIGHT) {
+                            params.height = 0;
+                        } else {
+                            params.height = Utils.SCREEN_HEIGHT - h;
+                        }
+
+                        space.setLayoutParams(params);
+                    }
+                });
+
                 View promoTypes = view.findViewById(R.id.promoTypes);
                 int visibility = promoTypes.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE;
                 expandIcon.setImageResource(visibility == View.GONE ? R.drawable.expand : R.drawable.collapse);
                 promoTypes.setVisibility(visibility);
+
                 break;
             case R.id.saveBtn:
+                DatabaseManager dbManager = main.getDatabaseManager();
+                dbManager.selectedTaskHolder.setTask(dbManager.selectedTask);
                 task.noGoods = false;
                 task.done = true;
                 task.edit = false;
-                task.sync = false;
+                Utils.serialize(task.taskFile, task);
                 main.getPageController().setPage(PageController.Page.ORDER);
                 break;
             case R.id.noGoodsBtn:
+                dbManager = main.getDatabaseManager();
+                dbManager.selectedTaskHolder.setTask(dbManager.selectedTask);
                 task.noGoods = true;
                 task.done = true;
                 task.edit = false;
-                task.sync = false;
+                Utils.serialize(task.taskFile, task);
                 main.getPageController().setPage(PageController.Page.ORDER);
                 break;
             case R.id.cancelBtn:

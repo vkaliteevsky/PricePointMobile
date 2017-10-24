@@ -15,10 +15,16 @@ public class PageController {
         NONE, LOGIN, ORDERS, ORDER, TASK
     }
 
+    public interface OnBackPressListener {
+        void backPressed();
+    }
+
     private Page page = Page.NONE;
     private Fragment pageFragment;
 
     private Activity activity;
+
+    public OnBackPressListener backPressListener;
 
 
     public PageController(Activity activity) {
@@ -50,4 +56,12 @@ public class PageController {
         Utils.setFragment(activity, R.id.pageContainer, pageFragment);
     }
 
+    public boolean onBackPress() {
+        if (backPressListener != null) {
+            backPressListener.backPressed();
+            return true;
+        }
+
+        return false;
+    }
 }

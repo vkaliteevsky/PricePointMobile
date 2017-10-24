@@ -9,11 +9,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.text.InputType;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -62,10 +64,22 @@ interface InputDialogCallback {
 public class Utils {
     public static String ROOT_DIR;
     public static final int MAX_PHOTO_SIZE = 1024;
+    public static int SCREEN_WIDTH = 1;
+    public static int SCREEN_HEIGHT = 1;
 
 
-    public static void init() {
+    public static void init(MainActivity main) {
         ROOT_DIR = Environment.getExternalStorageDirectory().getAbsolutePath() + "/PricePoint/";
+
+        Point size = new Point();
+        main.getWindowManager().getDefaultDisplay().getSize(size);
+        SCREEN_WIDTH = size.x;
+        SCREEN_HEIGHT = size.y;
+    }
+
+    public static int convertDpToPixels(float dp, Context context) {
+        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
+        return px;
     }
 
     public static void requestJSONObject(Context context, final String accessToken, int method, String url
@@ -430,5 +444,10 @@ public class Utils {
         }
 
         return res;
+    }
+
+    public static File[] getFilesList(String path) {
+        File directory = new File(path);
+        return directory.listFiles();
     }
 }

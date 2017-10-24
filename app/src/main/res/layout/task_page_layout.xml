@@ -6,20 +6,22 @@
     android:background="@android:color/white">
 
     <ScrollView
-        android:layout_alignParentTop="true"
-        android:layout_above="@+id/saveBtn"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true">
 
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/bg"
+            android:animateLayoutChanges="true"
+            android:id="@+id/taskInfo"
             android:background="@drawable/bg_gradient">
 
             <RelativeLayout
                 android:layout_marginTop="20dp"
+                android:animateLayoutChanges="true"
                 android:layout_width="match_parent"
                 android:layout_height="50dp">
 
@@ -123,7 +125,7 @@
                 <RelativeLayout
                         android:id="@+id/pricesPhotosLayout"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
                         android:animateLayoutChanges="true">
 
                         <LinearLayout
@@ -343,10 +345,25 @@
 
             </FrameLayout>
 
+            <View
+                android:id="@+id/space"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/white"/>
+
+            <Button
+                android:id="@+id/saveBtn"
+                android:layout_gravity="bottom"
+                android:layout_width="match_parent"
+                android:background="@drawable/bg_gradient"
+                android:text="СОХРАНИТЬ"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:layout_height="50dp" />
         </LinearLayout>
     </ScrollView>
 
-    <Button
+    <!--<Button
         android:id="@+id/saveBtn"
         android:layout_alignParentBottom="true"
         android:layout_width="match_parent"
@@ -354,7 +371,7 @@
         android:text="СОХРАНИТЬ"
         android:textColor="@android:color/white"
         android:textSize="16sp"
-        android:layout_height="50dp" />
+        android:layout_height="50dp" />-->
 </RelativeLayout>
 
 

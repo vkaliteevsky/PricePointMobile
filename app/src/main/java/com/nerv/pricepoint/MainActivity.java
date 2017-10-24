@@ -18,6 +18,8 @@ import android.os.Bundle;
 import android.content.Intent;
 import android.util.Log;
 
+import com.squareup.picasso.Picasso;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -30,7 +32,8 @@ public class MainActivity extends AppCompatActivity {
             , Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
 
     public static final int IMAGE_LOADED = 0;
-    public static final int REQUEST_IMAGE_CAPTURE = 2;
+    public static final int DB_CALLBACK = 1;
+    public static final int REQUEST_IMAGE_CAPTURE = 0;
 
 
     private DatabaseManager databaseManager;
@@ -109,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
         hasPermissions = hasPermissions(PERMISSIONS);
 
         if (hasPermissions) {
-            Utils.init();
+            Utils.init(this);
 
             handler = new Handler(Looper.getMainLooper()) {
                 @Override
@@ -118,6 +121,10 @@ public class MainActivity extends AppCompatActivity {
                         case IMAGE_LOADED:
                             Task.Img img = (Task.Img) inputMessage.obj;
                             img.callListeners();
+                            break;
+                        case DB_CALLBACK:
+                            DatabaseManager.Callback callback = (DatabaseManager.Callback) inputMessage.obj;
+                            callback.callback();
                             break;
                         default:
                     }
@@ -198,6 +205,25 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (pageController != null) {
+            if (!pageController.onBackPress()) {
+                minimizeApp();
+            }
+        } else {
+            minimizeApp();
+        }
+    }
+
+
+    public void minimizeApp() {
+        Intent startMain = new Intent(Intent.ACTION_MAIN);
+        startMain.addCategory(Intent.CATEGORY_HOME);
+        startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(startMain);
     }
 
     private File createImageFile() throws IOException {

@@ -130,15 +130,27 @@
 
             </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/status"
+            <FrameLayout
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:layout_gravity="right"
-                android:foregroundGravity="bottom"
-                android:src="@drawable/refresh"
-                android:scaleType="fitCenter"
-                android:background="@android:color/transparent" />
+                android:foregroundGravity="bottom">
+
+                <ImageButton
+                    android:id="@+id/status"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/refresh"
+                    android:scaleType="fitCenter"
+                    android:background="@android:color/transparent" />
+
+                <ProgressBar
+                    android:visibility="gone"
+                    android:id="@+id/updateProgressBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+            </FrameLayout>
+
         </LinearLayout>
 
     </LinearLayout>

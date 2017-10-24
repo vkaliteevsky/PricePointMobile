@@ -163,6 +163,13 @@ public class OrdersPageFragment extends CustomFragment implements View.OnClickLi
         bgAnimation((TransitionDrawable) ordersLayout.getBackground(), true);
         bgAnimation((TransitionDrawable) leftSideMenu.getBackground(), true);
 
+        main.getPageController().backPressListener = new PageController.OnBackPressListener() {
+            @Override
+            public void backPressed() {
+                main.getPageController().setPage(PageController.Page.LOGIN);
+            }
+        };
+
         return view;
     }
 

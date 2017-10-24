@@ -38,9 +38,12 @@ public class Order implements Serializable{
     public int noGoodsTasks;
     public int photos;
 
-    public ArrayList<Task> tasks = new ArrayList<>();
-    public LinkedList<Task> completedOrders = new LinkedList<>();
-    public Map<String, ArrayList<Task>> categories;
+    transient public ArrayList<Task> tasks = new ArrayList<>();
+    transient public LinkedList<Task> doneTasks = new LinkedList<>();
+    transient public Map<String, ArrayList<Task>> categories = new HashMap<>();
+    transient public Map<Integer, Task> taskById = new HashMap<>();
+    transient public String orderFile = "";
+    transient public String orderDir = "";
 
     public Order(JSONObject fields) {
         startDate = Utils.stringToDate(fields.optString("task_start"));
@@ -63,40 +66,58 @@ public class Order implements Serializable{
                     orders.put(orderId, order);
                 } else {
                     order = orders.get(orderId);
+                    Date newEndDate = Utils.stringToDate(tasks.getJSONObject(i).optString("task_end"));
+                    Date newStartDate = Utils.stringToDate(tasks.getJSONObject(i).optString("task_start"));
+
+                    if (order.endDate.compareTo(newEndDate) == -1) {
+                        order.endDate = newEndDate;
+                    }
+
+                    if (order.startDate.compareTo(newStartDate) == 1) {
+                        order.startDate = newStartDate;
+                    }
                 }
 
-                order.tasks.add(new Task(tasks.getJSONObject(i), order));
-
-                /*Task t = new Task(tasks.getJSONObject(i), order);
-
-                try {
-                    String filePath = Environment.getExternalStorageDirectory().getAbsolutePath();
-                    filePath += "/PricePoint/test.t";
-                    FileOutputStream fileOut =
-                            new FileOutputStream(filePath);
-                    ObjectOutputStream out = new ObjectOutputStream(fileOut);
-                    out.writeObject(t);
-                    out.close();
-                    fileOut.close();
-
-                    FileInputStream fileIn = new FileInputStream(filePath);
-                    ObjectInputStream in = new ObjectInputStream(fileIn);
-                    t = (Task) in.readObject();
-                    in.close();
-                    fileIn.close();
-                }catch(IOException e) {
-                    e.printStackTrace();
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }*/
+                order.tasks.add(new Task(tasks.getJSONObject(i)));
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
+    public void addTask(Task t) {
+        if (taskById.containsKey(t.id)) {
+            return;
+        }
+
+        tasks.add(t);
+
+        if (endDate.compareTo(t.endDate) == -1) {
+            endDate.setTime(t.endDate.getTime());
+        }
+
+        if (startDate.compareTo(t.startDate) == 1) {
+            startDate.setTime(t.startDate.getTime());
+        }
+
+        if (categories.containsKey(t.category)) {
+            categories.get(t.category).add(t);
+        } else {
+            categories.put(t.category, new ArrayList<Task>());
+            categories.get(t.category).add(t);
+        }
+
+        taskById.put(t.id, t);
+
+        String filePath = orderDir + "task" + String.valueOf(t.id) + ".t";
+        t.taskFile = filePath;
+        Utils.serialize(filePath, t);
+    }
+
     public void sortTasksByCategory() {
         HashMap<String, ArrayList<Task>> res = new HashMap<>();
+        doneTasks = new LinkedList<>();
+        taskById = new HashMap<>();
 
         for (Task t : tasks) {
             if (res.containsKey(t.category)) {
@@ -105,6 +126,12 @@ public class Order implements Serializable{
                 res.put(t.category, new ArrayList<Task>());
                 res.get(t.category).add(t);
             }
+
+            if (t.done) {
+                doneTasks.add(t);
+            }
+
+            taskById.put(t.id, t);
         }
 
         categories = new TreeMap<>(res);

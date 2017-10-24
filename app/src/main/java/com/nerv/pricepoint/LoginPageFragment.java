@@ -1,6 +1,7 @@
 package com.nerv.pricepoint;
 
 import android.app.Fragment;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.TransitionDrawable;
@@ -49,6 +50,15 @@ public class LoginPageFragment extends CustomFragment implements View.OnClickLis
         progressBar.getIndeterminateDrawable().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
 
         progressBar.setVisibility(View.GONE);
+
+        SharedPreferences sets = databaseManager.appSettings;
+
+        if (sets.contains("lastUserId")) {
+            loginET.setText(sets.getString("lastUserLogin", ""));
+            passwordET.setText(sets.getString("lastUserPass", ""));
+        }
+
+        pageController.backPressListener = null;
 
         return view;
     }
@@ -119,7 +129,7 @@ public class LoginPageFragment extends CustomFragment implements View.OnClickLis
             progressBar.setVisibility(View.VISIBLE);
 
 
-            databaseManager.checkLoginPassword("2222@mail.ru", "123456", new DatabaseManager.LogInCallback() {
+            databaseManager.checkLoginPassword("box@delcom.ru", "123456", new DatabaseManager.LogInCallback() {
                 @Override
                 public void logInCallback(DatabaseManager.LogInResult result) {
                     switch (result) {
