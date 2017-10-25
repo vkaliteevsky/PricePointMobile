@@ -22,12 +22,24 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.zxing.BinaryBitmap;
+import com.google.zxing.ChecksumException;
+import com.google.zxing.FormatException;
+import com.google.zxing.LuminanceSource;
+import com.google.zxing.MultiFormatReader;
+import com.google.zxing.NotFoundException;
+import com.google.zxing.RGBLuminanceSource;
+import com.google.zxing.Reader;
+import com.google.zxing.Result;
+import com.google.zxing.common.HybridBinarizer;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Protocol;
@@ -91,7 +103,6 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
             boolean selected = db.selectedTask.promo == promo.id;
             checkBox.setChecked(selected);
             name.setTextColor(ContextCompat.getColor(main, selected ? R.color.textColor2 : R.color.textColor1));
-
         }
 
         @Override
@@ -149,17 +160,27 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
         public void setImg(Task.Img img) {
             this.img = img;
 
-            if (!img.url.isEmpty()) {
+            loadImage();
+        }
+
+        private void loadImage() {
+            if (!img.url.isEmpty() || !img.path.isEmpty()) {
                 if (img.path.isEmpty()) {
                     loadIconFromServer();
                 } else {
                     File f = new File(img.path);
-                    Picasso.with(main).load(f)
-                            .transform(new BitmapTransform(Utils.MAX_PHOTO_SIZE, Utils.MAX_PHOTO_SIZE))
-                            .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
-                            .resize(Utils.MAX_PHOTO_SIZE, Utils.MAX_PHOTO_SIZE)
-                            .centerCrop()
-                            .into(photo);
+
+                    if (f.exists()) {
+                        Picasso.with(main).load(f)
+                                .transform(new BitmapTransform(Utils.MAX_PHOTO_SIZE, Utils.MAX_PHOTO_SIZE))
+                                .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
+                                .resize(Utils.MAX_PHOTO_SIZE, Utils.MAX_PHOTO_SIZE)
+                                .centerCrop()
+                                .into(photo);
+                    } else {
+                        photo.setScaleType(ImageView.ScaleType.CENTER);
+                        photo.setImageResource(R.drawable.camera);
+                    }
                 }
             } else {
                 photo.setScaleType(ImageView.ScaleType.CENTER);
@@ -177,25 +198,7 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
             photo = (ImageView) view.findViewById(R.id.photo);
             photo.setOnClickListener(this);
 
-            if (!img.url.isEmpty()) {
-                if (img.path.isEmpty()) {
-                    loadIconFromServer();
-                } else {
-                    File f = new File(img.path);
-
-                    photo.setImageDrawable(null);
-
-                    Picasso.with(main).load(f)
-                            .transform(new BitmapTransform(Utils.MAX_PHOTO_SIZE, Utils.MAX_PHOTO_SIZE))
-                            .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
-                            .resize(Utils.MAX_PHOTO_SIZE, Utils.MAX_PHOTO_SIZE)
-                            .centerCrop()
-                            .into(photo);
-                }
-            } else {
-                photo.setScaleType(ImageView.ScaleType.CENTER);
-                photo.setImageResource(R.drawable.camera);
-            }
+            loadImage();
 
             return view;
         }
@@ -273,13 +276,63 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
 
                     photo.setImageDrawable(null);
 
-                    File f = new File(path);
-                    Picasso.with(main).load(f)
-                            .transform(new BitmapTransform(Utils.MAX_PHOTO_SIZE, Utils.MAX_PHOTO_SIZE))
-                            .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
-                            .resize(Utils.MAX_PHOTO_SIZE, Utils.MAX_PHOTO_SIZE)
-                            .centerCrop()
-                            .into(photo);
+                    if (img.type == Task.ImgType.BARCODE) {
+                        Target t = new Target() {
+                            @Override
+                            public void onBitmapLoaded(Bitmap b, Picasso.LoadedFrom from) {
+                                int[] intArray = new int[b.getWidth() * b.getHeight()];
+                                b.getPixels(intArray, 0, b.getWidth(), 0, 0, b.getWidth(), b.getHeight());
+                                LuminanceSource source = new RGBLuminanceSource(b.getWidth(), b.getHeight(), intArray);
+                                BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+                                Reader reader = new MultiFormatReader();
+                                try {
+                                    Result result = reader.decode(bitmap);
+                                    main.getDatabaseManager().selectedTask.eanscan = result.getText();
+                                    Utils.showToast(main, "Штрих-код считан");
+                                } catch (NotFoundException e) {
+                                    Utils.showToast(main, "Не удалось считать штрих-код\nРаспожите его горизонтально");
+                                } catch (ChecksumException e) {
+                                    Utils.showToast(main, "Не удалось считать штрих-код");
+                                } catch (FormatException e) {
+                                    Utils.showToast(main, "Не удалось считать штрих-код");
+                                }
+
+                                intArray = null;
+
+                                photo.setImageBitmap(b);
+
+                                PicassoTargetManager.removeTarget(this);
+                            }
+
+                            @Override
+                            public void onBitmapFailed(Drawable errorDrawable) {
+                                PicassoTargetManager.removeTarget(this);
+                            }
+
+                            @Override
+                            public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+                            }
+                        };
+
+                        PicassoTargetManager.addTarget(t);
+
+                        File f = new File(path);
+                        Picasso.with(main).load(f)
+                                .transform(new BitmapTransform(Utils.MAX_PHOTO_SIZE, Utils.MAX_PHOTO_SIZE))
+                                .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
+                                .resize(Utils.MAX_PHOTO_SIZE, Utils.MAX_PHOTO_SIZE)
+                                .centerCrop()
+                                .into(t);
+                    } else {
+                        File f = new File(path);
+                        Picasso.with(main).load(f)
+                                .transform(new BitmapTransform(Utils.MAX_PHOTO_SIZE, Utils.MAX_PHOTO_SIZE))
+                                .memoryPolicy(MemoryPolicy.NO_CACHE, MemoryPolicy.NO_STORE)
+                                .resize(Utils.MAX_PHOTO_SIZE, Utils.MAX_PHOTO_SIZE)
+                                .centerCrop()
+                                .into(photo);
+                    }
                 }
             });
         }
@@ -326,6 +379,7 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
     public boolean animateBg = true;
     private LinearLayout taskInfo;
     private View space;
+    private View saveBtn;
 
     @Override
     public void init(MainActivity main) {
@@ -356,6 +410,7 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
             view.findViewById(R.id.cancelBtn).setOnClickListener(this);
             view.findViewById(R.id.saveBtn).setOnClickListener(this);
             view.findViewById(R.id.commentBtn).setOnClickListener(this);
+            saveBtn = view.findViewById(R.id.saveBtn);
 
             costReg = (TextView) view.findViewById(R.id.costReg);
             costCard = (TextView) view.findViewById(R.id.costCard);
@@ -404,9 +459,13 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
             taskInfo = (LinearLayout) view.findViewById(R.id.taskInfo);
             space = view.findViewById(R.id.space);
 
-            /*LinearLayout pricesLayout = (LinearLayout) view.findViewById(R.id.prices);
+            LinearLayout pricesLayout = (LinearLayout) view.findViewById(R.id.prices);
             LayoutTransition lt = pricesLayout.getLayoutTransition();
-            lt.enableTransitionType(LayoutTransition.CHANGING);*/
+            lt.enableTransitionType(LayoutTransition.CHANGING);
+
+            pricesLayout = (LinearLayout) view.findViewById(R.id.taskInfo);
+            lt = pricesLayout.getLayoutTransition();
+            lt.enableTransitionType(LayoutTransition.CHANGING);
         } else {
             for (int i = 0; i < 4; i++) {
                 PhotoItemFragment f = (PhotoItemFragment) photoItemFragments.get(i);
@@ -420,8 +479,8 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
             @Override
             public void onGlobalLayout() {
                 taskInfo.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                int h = taskInfo.getHeight() + Utils.convertDpToPixels(20, main);
                 ViewGroup.LayoutParams params = space.getLayoutParams();
+                int h = taskInfo.getHeight() + Utils.convertDpToPixels(20, main) - params.height;
 
                 if (h > Utils.SCREEN_HEIGHT) {
                     params.height = 0;
@@ -507,7 +566,7 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
     @Override
     public void promoSelected(Promo p) {
         selectedPromoName.setText("«" + p.name + "»");
-        main.getDatabaseManager().selectedTask.promo = p.id;
+        task.promo = p.id;
         promoRecyclerAdapter.notifyDataSetChanged();
     }
 
@@ -520,6 +579,10 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
         costReg.setText(Utils.formattedPrice(task.costReg));
         costCard.setText(Utils.formattedPrice(task.costCard));
         costPromo.setText(Utils.formattedPrice(task.costPromo));
+
+        if (task.promo != -1) {
+            promoSelected(main.getDatabaseManager().promos.get(task.promo));
+        }
     }
 
     @Override
@@ -538,13 +601,17 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
                     @Override
                     public void onGlobalLayout() {
                         taskInfo.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                        int h = taskInfo.getHeight() + Utils.convertDpToPixels(20, main);
                         ViewGroup.LayoutParams params = space.getLayoutParams();
+                        int h = taskInfo.getHeight() + Utils.convertDpToPixels(20, main) - params.height;
 
                         if (h > Utils.SCREEN_HEIGHT) {
                             params.height = 0;
                         } else {
-                            params.height = Utils.SCREEN_HEIGHT - h;
+                            int value = Utils.SCREEN_HEIGHT - h;
+
+                            if (value != 0) {
+                                params.height = value;
+                            }
                         }
 
                         space.setLayoutParams(params);

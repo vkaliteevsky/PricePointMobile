@@ -25,12 +25,14 @@ public class LoginPageFragment extends CustomFragment implements View.OnClickLis
     private EditText passwordET;
     private DatabaseManager databaseManager;
     private PageController pageController;
+    private MainActivity main;
     private boolean transitionFlag = true;
     private ProgressBar progressBar;
     private Button logInBtn;
 
     @Override
     public void init(MainActivity main) {
+        this.main = main;
         pageController = main.getPageController();
         databaseManager = main.getDatabaseManager();
     }
@@ -113,13 +115,13 @@ public class LoginPageFragment extends CustomFragment implements View.OnClickLis
             String password = passwordET.getText().toString();
 
             if (login.isEmpty()) {
-                //login is empty msg
-                //return;
+                Utils.showToast(main, "Введите логин");
+                return;
             }
 
             if (password.isEmpty()) {
-                //password is empty msg
-                //return;
+                Utils.showToast(main, "Введите пароль");
+                return;
             }
 
             loginET.setEnabled(false);
@@ -129,7 +131,7 @@ public class LoginPageFragment extends CustomFragment implements View.OnClickLis
             progressBar.setVisibility(View.VISIBLE);
 
 
-            databaseManager.checkLoginPassword("box@delcom.ru", "123456", new DatabaseManager.LogInCallback() {
+            databaseManager.checkLoginPassword(login/*"2222@mail.ru"*/, password/*"123456"*/, new DatabaseManager.LogInCallback() {
                 @Override
                 public void logInCallback(DatabaseManager.LogInResult result) {
                     switch (result) {
@@ -140,14 +142,23 @@ public class LoginPageFragment extends CustomFragment implements View.OnClickLis
                                     pageController.setPage(PageController.Page.ORDERS);
                                 }
                             });
-                            break;
+                            return;
                         case USER_NOT_FOUND:
+                            Utils.showToast(main, "Пользователь не найден");
                             break;
                         case WRONG_PASSWORD:
+                            Utils.showToast(main, "Неверный пароль");
                             break;
                         case NO_CONNECTION:
+                            Utils.showToast(main, "Нет подключения к интернету");
                             break;
                     }
+
+                    loginET.setEnabled(true);
+                    passwordET.setEnabled(true);
+                    logInBtn.setEnabled(true);
+                    logInBtn.setText("Войти");
+                    progressBar.setVisibility(View.GONE);
                 }
             });
         }

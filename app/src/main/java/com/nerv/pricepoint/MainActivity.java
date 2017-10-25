@@ -29,7 +29,8 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private static String[] PERMISSIONS = {Manifest.permission.INTERNET
             , Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.ACCESS_WIFI_STATE
-            , Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+            , Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE
+            , Manifest.permission.CAMERA};
 
     public static final int IMAGE_LOADED = 0;
     public static final int DB_CALLBACK = 1;

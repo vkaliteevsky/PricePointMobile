@@ -55,6 +55,31 @@ public class Order implements Serializable{
         mark = Utils.nullToEmpty(fields.optString("task_mark"));
     }
 
+    public List<Task> search(String text) {
+        ArrayList<Task> res = new ArrayList<>();
+
+        for (Task t : tasks) {
+            if (t.description.toLowerCase().contains(text) || t.category.toLowerCase().contains(text)
+                    || t.ean.contains(text)) {
+                res.add(t);
+            }
+        }
+
+        return res;
+    }
+
+    public List<Task> getTasksInWork() {
+        ArrayList<Task> res = new ArrayList<>();
+
+        for (Task t : tasks) {
+            if (!t.sync) {
+                res.add(t);
+            }
+        }
+
+        return res;
+    }
+
     public static void getOrders(JSONArray tasks, HashMap<Integer, Order> orders) {
         try {
             for (int i = 0; i < tasks.length(); i++) {

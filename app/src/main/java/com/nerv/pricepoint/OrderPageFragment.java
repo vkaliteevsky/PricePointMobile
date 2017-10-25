@@ -4,6 +4,7 @@ package com.nerv.pricepoint;
  * Created by NERV on 16.10.2017.
  */
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Point;
@@ -18,6 +19,9 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -61,6 +65,7 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
         private TextView photosCount;
         private ImageButton status;
         private View updateProgressBar;
+        public int pos;
 
         private Task task;
         private MainActivity main;
@@ -88,6 +93,10 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
             updateProgressBar = itemView.findViewById(R.id.updateProgressBar);
 
             status.setOnClickListener(this);
+        }
+
+        public void setPosition(int pos) {
+            this.pos = pos;
         }
 
         public void setTask(final Task task) {
@@ -121,6 +130,10 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
             }
 
             status.setImageResource(id);
+
+            status.invalidate();
+            comment.invalidate();
+            status.invalidate();
 
             //load goods icon
             Task.Img img = task.imgs.get(Task.ImgType.ICON);
@@ -214,6 +227,10 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
                     main.getDatabaseManager().sendData(task, new DatabaseManager.Callback() {
                         @Override
                         public void callback() {
+                            if (!task.sync) {
+                                Utils.showToast(main, "Не удалось синхронизировать");
+                            }
+
                             status.setImageResource(task.sync ? R.drawable.check : R.drawable.refresh);
                             status.setVisibility(View.VISIBLE);
                             updateProgressBar.setVisibility(View.GONE);
@@ -245,6 +262,7 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
 
         @Override
         public void onBindViewHolder(TaskHolder holder, int position) {
+            holder.setPosition(position);
             holder.setTask(tasks.get(position)); //holder.setTask(main.getDatabaseManager().selectedOrder.tasks.get(position));
         }
 
@@ -331,6 +349,9 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
     private TextView categoryName;
     private SideMenuType openedSideMenu = SideMenuType.NONE;
     private Order selectedOrder;
+    private EditText searchField;
+    private CheckBox allTasksCheckbox;
+    private CheckBox inWorkCheckbox;
 
     @Override
     public void init(MainActivity main) {
@@ -346,6 +367,14 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
             view.findViewById(R.id.leftSideMenuBtn).setOnClickListener(this);
             view.findViewById(R.id.rightSideMenuBtn).setOnClickListener(this);
             view.findViewById(R.id.allCategories).setOnClickListener(this);
+            view.findViewById(R.id.searchBtn).setOnClickListener(this);
+            view.findViewById(R.id.allTasks).setOnClickListener(this);
+            view.findViewById(R.id.inWork).setOnClickListener(this);
+
+            inWorkCheckbox = (CheckBox) view.findViewById(R.id.inWorkCheckbox);
+            allTasksCheckbox = (CheckBox) view.findViewById(R.id.allTasksCheckbox);
+
+            searchField = (EditText) view.findViewById(R.id.searchField);
         }
 
         if (selectedOrder != main.getDatabaseManager().selectedOrder) {
@@ -361,6 +390,11 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
             categoryName.setText("ВСЕ");
 
             initSideMenus();
+        }
+
+
+        if (main.getDatabaseManager().selectedTaskHolder != null) {
+            taskRecyclerAdapter.notifyItemChanged(main.getDatabaseManager().selectedTaskHolder.pos);
         }
 
         main.getPageController().backPressListener = new PageController.OnBackPressListener() {
@@ -451,6 +485,49 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.searchBtn:
+                InputMethodManager imm = (InputMethodManager) main.getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+                String text = searchField.getText().toString();
+
+                if (!text.isEmpty()) {
+                    selectedOrder = main.getDatabaseManager().selectedOrder;
+
+                    List<Task> res = selectedOrder.search(text);
+
+                    tasksRV = (RecyclerView) view.findViewById(R.id.tasksRV);
+                    tasksRV.setLayoutManager(new LinearLayoutManager(main, LinearLayoutManager.VERTICAL, false));
+                    taskRecyclerAdapter = new TaskRecyclerAdapter(main, res);
+                    tasksRV.setAdapter(taskRecyclerAdapter);
+
+                    tasksLayout = view.findViewById(R.id.tasksLayout);
+                    categoryName = (TextView) view.findViewById(R.id.category);
+                    categoryName.setText("Результаты поиска");
+                }
+
+                break;
+            case R.id.inWork:
+                //if (!inWorkCheckbox.isChecked()) {
+                    allTasksCheckbox.setChecked(false);
+                    inWorkCheckbox.setChecked(true);
+
+                    tasksRV = (RecyclerView) view.findViewById(R.id.tasksRV);
+                    tasksRV.setLayoutManager(new LinearLayoutManager(main, LinearLayoutManager.VERTICAL, false));
+                    taskRecyclerAdapter = new TaskRecyclerAdapter(main, selectedOrder.getTasksInWork());
+                    tasksRV.setAdapter(taskRecyclerAdapter);
+                //}
+                break;
+            case R.id.allTasks:
+                //if (!allTasksCheckbox.isChecked()) {
+                    allTasksCheckbox.setChecked(true);
+                    inWorkCheckbox.setChecked(false);
+
+                    tasksRV = (RecyclerView) view.findViewById(R.id.tasksRV);
+                    tasksRV.setLayoutManager(new LinearLayoutManager(main, LinearLayoutManager.VERTICAL, false));
+                    taskRecyclerAdapter = new TaskRecyclerAdapter(main, selectedOrder.tasks);
+                    tasksRV.setAdapter(taskRecyclerAdapter);
+                //}
+                break;
             case R.id.leftSideMenuBtn:
                 Utils.translateSideMenu(leftSideMenu, tasksLayout, SIDE_MENU_WIDTH);
                 openedSideMenu = SideMenuType.LEFT;

@@ -47,6 +47,7 @@
             android:layout_height="50dp"
             android:elevation="0dp"
             android:hint="Email"
+            android:inputType="textEmailAddress"
             android:textColorHint="@color/etHintColor"
             android:paddingLeft="@dimen/LPETPaddindLR"
             android:paddingRight="@dimen/LPETPaddindLR"

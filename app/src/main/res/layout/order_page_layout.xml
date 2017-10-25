@@ -72,14 +72,14 @@
             android:gravity="center"
             android:layout_alignParentTop="true"/>
 
-        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        <RelativeLayout
+            android:id="@+id/allTasks"
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:layout_marginTop="5dp"
             android:background="@android:color/transparent">
 
             <TextView
-                android:id="@+id/allTasks"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
@@ -94,6 +94,7 @@
                 android:layout_height="22dp"
                 android:button="@drawable/white_checkbox"
                 android:checked="true"
+                android:clickable="false"
                 android:layout_centerVertical="true"
                 android:layout_alignParentRight="true"
                 android:layout_marginRight="15dp"/>
@@ -101,13 +102,13 @@
         </RelativeLayout>
 
         <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/inWork"
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:layout_marginTop="5dp"
             android:background="@android:color/transparent">
 
             <TextView
-                android:id="@+id/promoName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@android:color/white"
@@ -117,11 +118,11 @@
                 android:layout_marginLeft="15dp"/>
 
             <CheckBox
-                android:id="@+id/checkbox"
+                android:id="@+id/inWorkCheckbox"
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:button="@drawable/white_checkbox"
-                android:checked="true"
+                android:clickable="false"
                 android:layout_centerVertical="true"
                 android:layout_alignParentRight="true"
                 android:layout_marginRight="15dp"/>
@@ -197,6 +198,7 @@
 
 
                 <ImageButton
+                    android:id="@+id/searchBtn"
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:layout_gravity="center"
@@ -204,11 +206,12 @@
                     android:src="@drawable/search" />
 
                 <EditText
+                    android:id="@+id/searchField"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
                     android:background="@android:color/white"
                     android:hint="Поиск"
-                    android:inputType="text"
+                    android:inputType="text|textVisiblePassword"
                     android:lines="1"
                     android:maxLines="1"
                     android:textColor="@android:color/black"

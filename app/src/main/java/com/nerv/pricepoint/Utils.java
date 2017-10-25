@@ -16,6 +16,8 @@ import android.provider.MediaStore;
 import android.text.InputType;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -23,6 +25,9 @@ import android.view.animation.Transformation;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -66,6 +71,8 @@ public class Utils {
     public static final int MAX_PHOTO_SIZE = 1024;
     public static int SCREEN_WIDTH = 1;
     public static int SCREEN_HEIGHT = 1;
+
+    private static Toast toast;
 
 
     public static void init(MainActivity main) {
@@ -449,5 +456,25 @@ public class Utils {
     public static File[] getFilesList(String path) {
         File directory = new File(path);
         return directory.listFiles();
+    }
+
+    public static void showToast(Activity main, String message) {
+        if (toast != null) {
+            toast.cancel();
+        }
+
+        LayoutInflater inflater = main.getLayoutInflater();
+        RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.toast_layout, null);
+
+        int marginBottom = convertDpToPixels(50, main);
+
+        toast = Toast.makeText(main.getApplicationContext(),
+                message, Toast.LENGTH_SHORT);
+        toast.setView(layout);
+        toast.setGravity(Gravity.BOTTOM, 0, marginBottom);
+        TextView messageTextView = (TextView) layout.findViewById(R.id.toast_text);
+        messageTextView.setText(message);
+
+        toast.show();
     }
 }
