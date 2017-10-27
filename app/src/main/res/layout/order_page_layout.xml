@@ -122,6 +122,7 @@
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:button="@drawable/white_checkbox"
+                android:checked="false"
                 android:clickable="false"
                 android:layout_centerVertical="true"
                 android:layout_alignParentRight="true"
@@ -205,6 +206,13 @@
                     android:background="@android:color/white"
                     android:src="@drawable/search" />
 
+                <View
+                    android:id="@+id/clearFocusView"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:layout_width="0px"
+                    android:layout_height="0px"/>
+
                 <EditText
                     android:id="@+id/searchField"
                     android:layout_width="match_parent"
@@ -214,8 +222,10 @@
                     android:inputType="text|textVisiblePassword"
                     android:lines="1"
                     android:maxLines="1"
-                    android:textColor="@android:color/black"
-                    android:textColorHint="@color/etHintColor" />
+                    android:nextFocusUp="@id/searchField"
+                    android:nextFocusLeft="@id/searchField"
+                    android:textColor="@color/textColor1"
+                    android:textColorHint="@color/textColor1" />
 
             </LinearLayout>
 

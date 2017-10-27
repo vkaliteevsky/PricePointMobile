@@ -5,6 +5,7 @@
     android:background="@android:color/white">
 
     <LinearLayout
+        android:animateLayoutChanges="true"
         android:id="@+id/leftSideMenu"
         android:visibility="visible"
         android:orientation="vertical"
@@ -26,10 +27,176 @@
             android:gravity="center"
             android:layout_alignParentTop="true"/>
 
+        <LinearLayout
+            android:id="@+id/dVariantsLayout"
+            android:animateLayoutChanges="true"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/expandDVariants1"
+                android:layout_width="match_parent"
+                android:layout_marginTop="5dp"
+                android:paddingLeft="30dp"
+                android:textSize="14sp"
+                android:textColor="@android:color/white"
+                android:text="Загружать заказы\nс началом исполнения\nне познее чем"
+                android:layout_height="wrap_content" />
+
+            <LinearLayout
+                android:id="@+id/expandDVariants2"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/curD"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:paddingLeft="30dp"
+                    android:text="через 3 дня"/>
+
+                <ImageView
+                    android:id="@+id/expandIcon"
+                    android:paddingLeft="5dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:tint="@android:color/white"
+                    android:src="@drawable/expand"
+                    />
+            </LinearLayout>
+
+            <LinearLayout
+                android:animateLayoutChanges="true"
+                android:visibility="gone"
+                android:id="@+id/dVariants"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:id="@+id/d0"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:textAllCaps="false"
+                    android:textAlignment="gravity"
+                    android:gravity="left|center_vertical"
+                    android:layout_marginTop="5dp"
+                    android:paddingLeft="30dp"
+                    android:text="сегодня"
+                    android:background="@android:color/transparent"/>
+
+                <Button
+                    android:id="@+id/d1"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:textAllCaps="false"
+                    android:textAlignment="gravity"
+                    android:gravity="left|center_vertical"
+                    android:layout_marginTop="5dp"
+                    android:paddingLeft="30dp"
+                    android:text="завтра"
+                    android:background="@android:color/transparent"/>
+
+                <Button
+                    android:id="@+id/d2"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:textAllCaps="false"
+                    android:textAlignment="gravity"
+                    android:gravity="left|center_vertical"
+                    android:layout_marginTop="5dp"
+                    android:paddingLeft="30dp"
+                    android:text="послезавтра"
+                    android:background="@android:color/transparent"/>
+
+                <Button
+                    android:id="@+id/d3"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:textAllCaps="false"
+                    android:textAlignment="gravity"
+                    android:gravity="left|center_vertical"
+                    android:layout_marginTop="5dp"
+                    android:paddingLeft="30dp"
+                    android:text="через 3 дня"
+                    android:background="@android:color/transparent"/>
+
+                <Button
+                    android:id="@+id/d4"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:textAllCaps="false"
+                    android:textAlignment="gravity"
+                    android:gravity="left|center_vertical"
+                    android:layout_marginTop="5dp"
+                    android:paddingLeft="30dp"
+                    android:text="через 4 дня"
+                    android:background="@android:color/transparent"/>
+
+                <Button
+                    android:id="@+id/d5"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:textAllCaps="false"
+                    android:textAlignment="gravity"
+                    android:gravity="left|center_vertical"
+                    android:layout_marginTop="5dp"
+                    android:paddingLeft="30dp"
+                    android:text="через 5 дней"
+                    android:background="@android:color/transparent"/>
+
+                <Button
+                    android:id="@+id/d6"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:textAllCaps="false"
+                    android:textAlignment="gravity"
+                    android:gravity="left|center_vertical"
+                    android:layout_marginTop="5dp"
+                    android:paddingLeft="30dp"
+                    android:text="через 6 дней"
+                    android:background="@android:color/transparent"/>
+
+                <Button
+                    android:id="@+id/d7"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white"
+                    android:textAllCaps="false"
+                    android:textAlignment="gravity"
+                    android:gravity="left|center_vertical"
+                    android:layout_marginTop="5dp"
+                    android:paddingLeft="30dp"
+                    android:text="через неделю"
+                    android:background="@android:color/transparent"/>
+            </LinearLayout>
+        </LinearLayout>
+
         <Button
             android:id="@+id/logOutBtn"
             android:layout_width="match_parent"
             android:layout_height="30dp"
+            android:layout_marginTop="5dp"
             android:text="ВЫЙТИ"
             android:textSize="14sp"
             android:background="@android:color/transparent"/>

@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +50,7 @@ import java.util.List;
 interface CategoryControlInterface {
     void setCategory(String category);
 }
+
 
 public class OrderPageFragment extends CustomFragment implements View.OnClickListener, CategoryControlInterface {
 
@@ -104,8 +106,8 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
 
             description.setText(task.description);
             ean.setText(task.ean);
-            fstPrice.setText(task.costReg == 0 ? "..." : String.valueOf(task.costReg).replace(".", ",") + "\u20BD");
-            sndPrice.setText(task.costCard == 0 ? "..." : String.valueOf(task.costCard).replace(".", ",") + "\u20BD");
+            fstPrice.setText(Utils.formattedPrice(task.costReg));
+            sndPrice.setText(Utils.formattedPrice(task.costCard));
             loadingBar.setVisibility(View.GONE);
 
             comment.setVisibility(task.comment.isEmpty() ? View.INVISIBLE : View.VISIBLE);
@@ -138,6 +140,8 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
             //load goods icon
             Task.Img img = task.imgs.get(Task.ImgType.ICON);
 
+            icon.setPadding(0, 0, 0, 0);
+
             if (!img.url.isEmpty()) {
 
                 if (!img.loading) {
@@ -162,6 +166,10 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
                     });
                     loadingBar.setVisibility(View.VISIBLE);
                 }
+            } else {
+                int pad = Utils.convertDpToPixels(20, main);
+                icon.setPadding(pad, pad, pad, pad);
+                icon.setImageResource(R.drawable.pp);
             }
         }
 
@@ -198,6 +206,7 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
                 @Override
                 public void onBitmapFailed(Drawable errorDrawable) {
                     loadingBar.setVisibility(View.INVISIBLE);
+                    icon.setImageResource(R.drawable.pp);
                     PicassoTargetManager.removeTarget(this);
                 }
 
@@ -352,6 +361,13 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
     private EditText searchField;
     private CheckBox allTasksCheckbox;
     private CheckBox inWorkCheckbox;
+    private boolean isSideMenuTranslation = false;
+    private Callback onEndTranslationListener = new Callback() {
+        @Override
+        public void callback() {
+            isSideMenuTranslation = false;
+        }
+    };
 
     @Override
     public void init(MainActivity main) {
@@ -375,6 +391,19 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
             allTasksCheckbox = (CheckBox) view.findViewById(R.id.allTasksCheckbox);
 
             searchField = (EditText) view.findViewById(R.id.searchField);
+
+            searchField.setOnKeyListener(new View.OnKeyListener() {
+                @Override
+                public boolean onKey(View view, int keyCode, KeyEvent keyEvent) {
+                    if (keyEvent != null && keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER) {
+                        search();
+                        hideKeyboard();
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            });
         }
 
         if (selectedOrder != main.getDatabaseManager().selectedOrder) {
@@ -389,6 +418,10 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
             categoryName = (TextView) view.findViewById(R.id.category);
             categoryName.setText("ВСЕ");
 
+            inWorkCheckbox.setChecked(false);
+            allTasksCheckbox.setChecked(true);
+            searchField.setText("");
+
             initSideMenus();
         }
 
@@ -400,12 +433,37 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
         main.getPageController().backPressListener = new PageController.OnBackPressListener() {
             @Override
             public void backPressed() {
-                main.getPageController().setPage(PageController.Page.ORDERS);
+                if (openedSideMenu != SideMenuType.NONE) {
+                    if (!isSideMenuTranslation) {
+                        isSideMenuTranslation = true;
+
+                        switch (openedSideMenu) {
+                            case LEFT:
+                                Utils.translateSideMenu(leftSideMenu, tasksLayout, -SIDE_MENU_WIDTH, onEndTranslationListener);
+                                break;
+                            case RIGHT:
+                                Utils.translateSideMenu(rightSideMenu, tasksLayout, SIDE_MENU_WIDTH, onEndTranslationListener);
+                                break;
+                        }
+
+                        space.setVisibility(View.GONE);
+                        openedSideMenu = SideMenuType.NONE;
+                    }
+                } else {
+                    if (!isSideMenuTranslation) {
+                        main.getPageController().setPage(PageController.Page.ORDERS);
+                    }
+                }
             }
         };
 
 
         return view;
+    }
+
+    private void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager) main.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(searchField.getWindowToken(), 0);
     }
 
     private void bgAnimation(final TransitionDrawable trans, final boolean flag) {
@@ -472,9 +530,12 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
         taskRecyclerAdapter = new TaskRecyclerAdapter(main, main.getDatabaseManager().selectedOrder.categories.get(category));
         tasksRV.setAdapter(taskRecyclerAdapter);
 
-        Utils.translateSideMenu(leftSideMenu, tasksLayout, -SIDE_MENU_WIDTH);
+        isSideMenuTranslation = true;
+        Utils.translateSideMenu(leftSideMenu, tasksLayout, -SIDE_MENU_WIDTH, onEndTranslationListener);
         space.setVisibility(View.GONE);
         openedSideMenu = SideMenuType.NONE;
+
+        searchField.setText("");
     }
 
     @Override
@@ -482,32 +543,39 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
         super.onDestroyView();
     }
 
+    private void search() {
+        hideKeyboard();
+        String text = searchField.getText().toString();
+
+        if (!text.isEmpty()) {
+            selectedOrder = main.getDatabaseManager().selectedOrder;
+
+            List<Task> res = selectedOrder.search(text);
+
+            tasksRV = (RecyclerView) view.findViewById(R.id.tasksRV);
+            tasksRV.setLayoutManager(new LinearLayoutManager(main, LinearLayoutManager.VERTICAL, false));
+            taskRecyclerAdapter = new TaskRecyclerAdapter(main, res);
+            tasksRV.setAdapter(taskRecyclerAdapter);
+
+            tasksLayout = view.findViewById(R.id.tasksLayout);
+            categoryName = (TextView) view.findViewById(R.id.category);
+            categoryName.setText("Результаты поиска");
+        }
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.searchBtn:
-                InputMethodManager imm = (InputMethodManager) main.getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
-                String text = searchField.getText().toString();
-
-                if (!text.isEmpty()) {
-                    selectedOrder = main.getDatabaseManager().selectedOrder;
-
-                    List<Task> res = selectedOrder.search(text);
-
-                    tasksRV = (RecyclerView) view.findViewById(R.id.tasksRV);
-                    tasksRV.setLayoutManager(new LinearLayoutManager(main, LinearLayoutManager.VERTICAL, false));
-                    taskRecyclerAdapter = new TaskRecyclerAdapter(main, res);
-                    tasksRV.setAdapter(taskRecyclerAdapter);
-
-                    tasksLayout = view.findViewById(R.id.tasksLayout);
-                    categoryName = (TextView) view.findViewById(R.id.category);
-                    categoryName.setText("Результаты поиска");
-                }
-
+                search();
                 break;
             case R.id.inWork:
                 //if (!inWorkCheckbox.isChecked()) {
+                    if (!searchField.getText().toString().isEmpty()) {
+                        searchField.setText("");
+                        categoryName.setText("Все");
+                    }
+
                     allTasksCheckbox.setChecked(false);
                     inWorkCheckbox.setChecked(true);
 
@@ -519,6 +587,11 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
                 break;
             case R.id.allTasks:
                 //if (!allTasksCheckbox.isChecked()) {
+                    if (!searchField.getText().toString().isEmpty()) {
+                        searchField.setText("");
+                        categoryName.setText("Все");
+                    }
+
                     allTasksCheckbox.setChecked(true);
                     inWorkCheckbox.setChecked(false);
 
@@ -529,22 +602,29 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
                 //}
                 break;
             case R.id.leftSideMenuBtn:
-                Utils.translateSideMenu(leftSideMenu, tasksLayout, SIDE_MENU_WIDTH);
-                openedSideMenu = SideMenuType.LEFT;
-                space.setVisibility(View.VISIBLE);
+                if (!isSideMenuTranslation) {
+                    isSideMenuTranslation = true;
+                    Utils.translateSideMenu(leftSideMenu, tasksLayout, SIDE_MENU_WIDTH, onEndTranslationListener);
+                    openedSideMenu = SideMenuType.LEFT;
+                    space.setVisibility(View.VISIBLE);
+                }
                 break;
             case R.id.rightSideMenuBtn:
-                Utils.translateSideMenu(rightSideMenu, tasksLayout, -SIDE_MENU_WIDTH);
-                openedSideMenu = SideMenuType.RIGHT;
-                space.setVisibility(View.VISIBLE);
+                if (!isSideMenuTranslation) {
+                    isSideMenuTranslation = true;
+                    Utils.translateSideMenu(rightSideMenu, tasksLayout, -SIDE_MENU_WIDTH, onEndTranslationListener);
+                    openedSideMenu = SideMenuType.RIGHT;
+                    space.setVisibility(View.VISIBLE);
+                }
                 break;
             case R.id.space:
+                isSideMenuTranslation = true;
                 switch (openedSideMenu) {
                     case LEFT:
-                        Utils.translateSideMenu(leftSideMenu, tasksLayout, -SIDE_MENU_WIDTH);
+                        Utils.translateSideMenu(leftSideMenu, tasksLayout, -SIDE_MENU_WIDTH, onEndTranslationListener);
                         break;
                     case RIGHT:
-                        Utils.translateSideMenu(rightSideMenu, tasksLayout, SIDE_MENU_WIDTH);
+                        Utils.translateSideMenu(rightSideMenu, tasksLayout, SIDE_MENU_WIDTH, onEndTranslationListener);
                         break;
                 }
 
@@ -557,7 +637,8 @@ public class OrderPageFragment extends CustomFragment implements View.OnClickLis
                 taskRecyclerAdapter = new TaskRecyclerAdapter(main, main.getDatabaseManager().selectedOrder.tasks);
                 tasksRV.setAdapter(taskRecyclerAdapter);
 
-                Utils.translateSideMenu(leftSideMenu, tasksLayout, -SIDE_MENU_WIDTH);
+                isSideMenuTranslation = true;
+                Utils.translateSideMenu(leftSideMenu, tasksLayout, -SIDE_MENU_WIDTH, onEndTranslationListener);
                 space.setVisibility(View.GONE);
                 openedSideMenu = SideMenuType.NONE;
                 break;

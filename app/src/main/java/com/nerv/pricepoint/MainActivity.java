@@ -1,10 +1,7 @@
 package com.nerv.pricepoint;
 
 import android.Manifest;
-import android.content.ClipData;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -16,24 +13,19 @@ import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.content.Intent;
-import android.util.Log;
-
-import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private static String[] PERMISSIONS = {Manifest.permission.INTERNET
             , Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.ACCESS_WIFI_STATE
             , Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE
-            , Manifest.permission.CAMERA};
+            , Manifest.permission.CAMERA, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
 
     public static final int IMAGE_LOADED = 0;
     public static final int DB_CALLBACK = 1;
+    public static final int BARCODE_READ_COMPLETED = 2;
     public static final int REQUEST_IMAGE_CAPTURE = 0;
 
 
@@ -42,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean hasPermissions = Build.VERSION.SDK_INT < Build.VERSION_CODES.M;
     public static Handler handler;
     private Uri imageUri;
+
 
 
     public boolean hasPermissions(String[] permissions) {
@@ -126,6 +119,10 @@ public class MainActivity extends AppCompatActivity {
                         case DB_CALLBACK:
                             DatabaseManager.Callback callback = (DatabaseManager.Callback) inputMessage.obj;
                             callback.callback();
+                            break;
+                        case BARCODE_READ_COMPLETED:
+                            BarcodeReadCompletedCallback brcc = (BarcodeReadCompletedCallback) inputMessage.obj;
+                            brcc.onCompletion();
                             break;
                         default:
                     }

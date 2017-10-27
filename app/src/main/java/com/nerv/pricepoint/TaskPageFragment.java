@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -69,6 +70,10 @@ interface PromoInterface {
 
 interface CameraPhotoCallback {
     void photoTaken(String path);
+}
+
+interface BarcodeReadCompletedCallback {
+    void onCompletion();
 }
 
 public class TaskPageFragment extends CustomFragment implements View.OnClickListener, PromoInterface {
@@ -277,29 +282,56 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
                     photo.setImageDrawable(null);
 
                     if (img.type == Task.ImgType.BARCODE) {
+                        loadingBar.setVisibility(View.VISIBLE);
+
+                        Utils.showToast(main, "Считывание штрих-кода...");
+
                         Target t = new Target() {
                             @Override
-                            public void onBitmapLoaded(Bitmap b, Picasso.LoadedFrom from) {
-                                int[] intArray = new int[b.getWidth() * b.getHeight()];
-                                b.getPixels(intArray, 0, b.getWidth(), 0, 0, b.getWidth(), b.getHeight());
-                                LuminanceSource source = new RGBLuminanceSource(b.getWidth(), b.getHeight(), intArray);
-                                BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-                                Reader reader = new MultiFormatReader();
-                                try {
-                                    Result result = reader.decode(bitmap);
-                                    main.getDatabaseManager().selectedTask.eanscan = result.getText();
-                                    Utils.showToast(main, "Штрих-код считан");
-                                } catch (NotFoundException e) {
-                                    Utils.showToast(main, "Не удалось считать штрих-код\nРаспожите его горизонтально");
-                                } catch (ChecksumException e) {
-                                    Utils.showToast(main, "Не удалось считать штрих-код");
-                                } catch (FormatException e) {
-                                    Utils.showToast(main, "Не удалось считать штрих-код");
-                                }
+                            public void onBitmapLoaded(final Bitmap b, Picasso.LoadedFrom from) {
+                                Thread t = new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        int[] intArray = new int[b.getWidth() * b.getHeight()];
+                                        b.getPixels(intArray, 0, b.getWidth(), 0, 0, b.getWidth(), b.getHeight());
+                                        LuminanceSource source = new RGBLuminanceSource(b.getWidth(), b.getHeight(), intArray);
+                                        BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+                                        Reader reader = new MultiFormatReader();
+                                        boolean success = false;
 
-                                intArray = null;
+                                        try {
+                                            Result result = reader.decode(bitmap);
+                                            main.getDatabaseManager().selectedTask.eanscan = result.getText();
+                                            success = true;
+                                        } catch (NotFoundException e) {
+                                        } catch (ChecksumException e) {
+                                        } catch (FormatException e) {
+                                        }
 
-                                photo.setImageBitmap(b);
+                                        intArray = null;
+
+                                        final boolean finalSuccess = success;
+
+                                        Message msg = MainActivity.handler.obtainMessage(MainActivity.BARCODE_READ_COMPLETED, new BarcodeReadCompletedCallback() {
+                                            @Override
+                                            public void onCompletion() {
+                                                if (finalSuccess) {
+                                                    photo.setImageBitmap(b);
+                                                    Utils.showToast(main, "Штрих-код считан");
+                                                } else {
+                                                    photo.setScaleType(ImageView.ScaleType.CENTER);
+                                                    photo.setImageResource(R.drawable.camera);
+                                                    Utils.showToast(main, "Не удалось считать штрих-код");
+                                                }
+
+                                                loadingBar.setVisibility(View.GONE);
+                                            }
+                                        });
+                                        msg.sendToTarget();
+                                    }
+                                });
+
+                                t.start();
 
                                 PicassoTargetManager.removeTarget(this);
                             }
@@ -459,12 +491,12 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
             taskInfo = (LinearLayout) view.findViewById(R.id.taskInfo);
             space = view.findViewById(R.id.space);
 
-            LinearLayout pricesLayout = (LinearLayout) view.findViewById(R.id.prices);
-            LayoutTransition lt = pricesLayout.getLayoutTransition();
+            LinearLayout layout = (LinearLayout) view.findViewById(R.id.prices);
+            LayoutTransition lt = layout.getLayoutTransition();
             lt.enableTransitionType(LayoutTransition.CHANGING);
 
-            pricesLayout = (LinearLayout) view.findViewById(R.id.taskInfo);
-            lt = pricesLayout.getLayoutTransition();
+            layout = (LinearLayout) view.findViewById(R.id.taskInfo);
+            lt = layout.getLayoutTransition();
             lt.enableTransitionType(LayoutTransition.CHANGING);
         } else {
             for (int i = 0; i < 4; i++) {
@@ -478,7 +510,6 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
         vto.addOnGlobalLayoutListener (new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                taskInfo.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 ViewGroup.LayoutParams params = space.getLayoutParams();
                 int h = taskInfo.getHeight() + Utils.convertDpToPixels(20, main) - params.height;
 
@@ -493,12 +524,15 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
                 }
 
                 space.setLayoutParams(params);
+                taskInfo.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
 
         fillGoodsInfo();
 
         Task.Img icon = task.imgs.get(Task.ImgType.ICON);
+
+        goodsIcon.setPadding(0, 0, 0, 0);
 
         if (icon.loading) {
             final Task targetTask = task;
@@ -515,8 +549,16 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
             });
             iconProgressBar.setVisibility(View.VISIBLE);
         } else {
-            File f = new File(icon.path);
-            Picasso.with(main).load(f).into(goodsIcon);
+            if (icon.url.isEmpty()) {
+                int pad = Utils.convertDpToPixels(20, main);
+
+                goodsIcon.setPadding(pad, pad, pad, pad);
+                goodsIcon.setImageResource(R.drawable.pp);
+            } else {
+                File f = new File(icon.path);
+                Picasso.with(main).load(f).into(goodsIcon);
+            }
+
             iconProgressBar.setVisibility(View.GONE);
         }
 
@@ -600,7 +642,6 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
                 vto.addOnGlobalLayoutListener (new ViewTreeObserver.OnGlobalLayoutListener() {
                     @Override
                     public void onGlobalLayout() {
-                        taskInfo.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                         ViewGroup.LayoutParams params = space.getLayoutParams();
                         int h = taskInfo.getHeight() + Utils.convertDpToPixels(20, main) - params.height;
 
@@ -615,6 +656,7 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
                         }
 
                         space.setLayoutParams(params);
+                        taskInfo.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                     }
                 });
 
@@ -626,19 +668,23 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
                 break;
             case R.id.saveBtn:
                 DatabaseManager dbManager = main.getDatabaseManager();
-                dbManager.selectedTaskHolder.setTask(dbManager.selectedTask);
+                dbManager.getCurDate();
+                //dbManager.setLocation(task);
                 task.noGoods = false;
                 task.done = true;
                 task.edit = false;
+                dbManager.selectedTaskHolder.setTask(task);
                 Utils.serialize(task.taskFile, task);
                 main.getPageController().setPage(PageController.Page.ORDER);
                 break;
             case R.id.noGoodsBtn:
                 dbManager = main.getDatabaseManager();
-                dbManager.selectedTaskHolder.setTask(dbManager.selectedTask);
+                dbManager.getCurDate();
                 task.noGoods = true;
                 task.done = true;
                 task.edit = false;
+                //dbManager.setLocation(task);
+                dbManager.selectedTaskHolder.setTask(task);
                 Utils.serialize(task.taskFile, task);
                 main.getPageController().setPage(PageController.Page.ORDER);
                 break;
@@ -670,6 +716,8 @@ public class TaskPageFragment extends CustomFragment implements View.OnClickList
                             public void callback(String text) {
                                 try {
                                     double price = Double.parseDouble(text);
+
+                                    price = Math.floor(price * 100) / 100;
 
                                     switch (v.getId()) {
                                         case R.id.costReg:

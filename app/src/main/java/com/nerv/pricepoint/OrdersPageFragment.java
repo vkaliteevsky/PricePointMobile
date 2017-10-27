@@ -1,5 +1,6 @@
 package com.nerv.pricepoint;
 
+import android.animation.LayoutTransition;
 import android.content.Context;
 import android.graphics.Point;
 import android.graphics.drawable.TransitionDrawable;
@@ -11,6 +12,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -112,6 +114,8 @@ public class OrdersPageFragment extends CustomFragment implements View.OnClickLi
         }
     }
 
+    private static final String[] D_TEXT = new String[]{"сегодня", "завтра", "послезавтра"
+            , "через 3 дня", "через 4 дня", "через 5 дней", "через 6 дней", "через неделю"};
     private float SIDE_MENU_WIDTH;
 
     private View view;
@@ -123,7 +127,17 @@ public class OrdersPageFragment extends CustomFragment implements View.OnClickLi
     private View ordersLayout;
     private int screenWidth;
     private View space;
-    private Boolean ordersLayoutTransFlag = true;
+    private View dVariants;
+    private TextView curD;
+    private ImageView expandIcon;
+    private boolean isLeftSideMenuOpen = false;
+    private boolean isSideMenuTranslation = false;
+    private Callback onEndTranslationListener = new Callback() {
+        @Override
+        public void callback() {
+            isSideMenuTranslation = false;
+        }
+    };
 
     @Override
     public void init(MainActivity main) {
@@ -163,10 +177,45 @@ public class OrdersPageFragment extends CustomFragment implements View.OnClickLi
         bgAnimation((TransitionDrawable) ordersLayout.getBackground(), true);
         bgAnimation((TransitionDrawable) leftSideMenu.getBackground(), true);
 
+        LinearLayout layout = (LinearLayout) view.findViewById(R.id.dVariantsLayout);
+        LayoutTransition lt = layout.getLayoutTransition();
+        lt.enableTransitionType(LayoutTransition.CHANGING);
+
+        layout = (LinearLayout) view.findViewById(R.id.dVariants);
+        lt = layout.getLayoutTransition();
+        lt.enableTransitionType(LayoutTransition.CHANGING);
+
+        lt = ((LinearLayout) leftSideMenu).getLayoutTransition();
+        lt.enableTransitionType(LayoutTransition.CHANGING);
+
+        view.findViewById(R.id.expandDVariants1).setOnClickListener(this);
+        view.findViewById(R.id.expandDVariants2).setOnClickListener(this);
+
+        view.findViewById(R.id.d0).setOnClickListener(this);
+        view.findViewById(R.id.d1).setOnClickListener(this);
+        view.findViewById(R.id.d2).setOnClickListener(this);
+        view.findViewById(R.id.d3).setOnClickListener(this);
+        view.findViewById(R.id.d4).setOnClickListener(this);
+        view.findViewById(R.id.d5).setOnClickListener(this);
+        view.findViewById(R.id.d6).setOnClickListener(this);
+        view.findViewById(R.id.d7).setOnClickListener(this);
+
+        expandIcon = (ImageView) view.findViewById(R.id.expandIcon);
+        curD = (TextView) view.findViewById(R.id.curD);
+        curD.setText(D_TEXT[main.getDatabaseManager().D]);
+
+        dVariants = view.findViewById(R.id.dVariants);
+
         main.getPageController().backPressListener = new PageController.OnBackPressListener() {
             @Override
             public void backPressed() {
-                main.getPageController().setPage(PageController.Page.LOGIN);
+                if (isLeftSideMenuOpen) {
+                    hideLeftSideMenu();
+                } else {
+                    if (!isSideMenuTranslation) {
+                        main.getPageController().setPage(PageController.Page.LOGIN);
+                    }
+                }
             }
         };
 
@@ -200,6 +249,15 @@ public class OrdersPageFragment extends CustomFragment implements View.OnClickLi
         }, 2000);
     }
 
+    private void hideLeftSideMenu() {
+        if (!isSideMenuTranslation) {
+            isLeftSideMenuOpen = false;
+            isSideMenuTranslation = true;
+            space.setVisibility(View.GONE);
+            Utils.translateSideMenu(leftSideMenu, ordersLayout, -SIDE_MENU_WIDTH, onEndTranslationListener);
+        }
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
@@ -215,15 +273,67 @@ public class OrdersPageFragment extends CustomFragment implements View.OnClickLi
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.leftSideMenuBtn:
-                space.setVisibility(View.VISIBLE);
-                Utils.translateSideMenu(leftSideMenu, ordersLayout, SIDE_MENU_WIDTH);
+                if (!isSideMenuTranslation) {
+                    isLeftSideMenuOpen = true;
+                    isSideMenuTranslation = true;
+                    space.setVisibility(View.VISIBLE);
+                    Utils.translateSideMenu(leftSideMenu, ordersLayout, SIDE_MENU_WIDTH, onEndTranslationListener);
+                }
                 break;
             case R.id.space:
-                space.setVisibility(View.GONE);
-                Utils.translateSideMenu(leftSideMenu, ordersLayout, -SIDE_MENU_WIDTH);
+                hideLeftSideMenu();
                 break;
             case R.id.logOutBtn:
                 main.getPageController().setPage(PageController.Page.LOGIN);
+                break;
+            case R.id.expandDVariants1:
+            case R.id.expandDVariants2:
+                int visibility = dVariants.getVisibility() == View.GONE ? View.VISIBLE : View.GONE;
+                dVariants.setVisibility(visibility);
+                expandIcon.setImageResource(visibility == View.GONE ? R.drawable.expand : R.drawable.collapse);
+                break;
+            case R.id.d0:
+            case R.id.d1:
+            case R.id.d2:
+            case R.id.d3:
+            case R.id.d4:
+            case R.id.d5:
+            case R.id.d6:
+            case R.id.d7:
+                int d = 0;
+                switch (v.getId()) {
+                    case R.id.d0:
+                        d = 0;
+                        break;
+                    case R.id.d1:
+                        d = 1;
+                        break;
+                    case R.id.d2:
+                        d = 2;
+                        break;
+                    case R.id.d3:
+                        d = 3;
+                        break;
+                    case R.id.d4:
+                        d = 4;
+                        break;
+                    case R.id.d5:
+                        d = 5;
+                        break;
+                    case R.id.d6:
+                        d = 6;
+                        break;
+                    case R.id.d7:
+                        d = 7;
+                        break;
+                }
+
+                main.getDatabaseManager().setD(d);
+
+                curD.setText(D_TEXT[d]);
+                dVariants.setVisibility(View.GONE);
+                expandIcon.setImageResource(R.drawable.expand);
+
                 break;
         }
     }

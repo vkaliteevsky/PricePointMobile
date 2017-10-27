@@ -54,6 +54,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,6 +65,10 @@ import java.util.Map;
 
 interface InputDialogCallback {
     void callback(String text);
+}
+
+interface Callback {
+    void callback();
 }
 
 public class Utils {
@@ -243,6 +248,23 @@ public class Utils {
         return dateFormat.format(date);
     }
 
+    public static Date dateWithoutTime(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+
+        return cal.getTime();
+    }
+
+    public static String getTime(Date date) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+
+        return dateFormat.format(date);
+    }
+
     public static String intWithSpaces(int v) {
         String strV = String.valueOf(v);
         int width = 5 - strV.length();
@@ -341,7 +363,8 @@ public class Utils {
         v.startAnimation(a);
     }
 
-    public static void translateSideMenu(final View sideMenu, final View mainView, final float targetTranslation) {
+    public static void translateSideMenu(final View sideMenu, final View mainView
+            , final float targetTranslation, final Callback onEndTranslationLustener) {
         final int initialSideMenuTranslation = (int) sideMenu.getTranslationX();
         final int initialmainViewTranslation = (int) mainView.getTranslationX();
 
@@ -354,6 +377,10 @@ public class Utils {
 
                 sideMenu.requestLayout();
                 mainView.requestLayout();
+
+                if (interpolatedTime == 1) {
+                    onEndTranslationLustener.callback();
+                }
             }
 
             @Override
@@ -367,7 +394,8 @@ public class Utils {
         mainView.startAnimation(a);
     }
 
-    public static void inputTextDialog(Context context, int type, String title, String text, final InputDialogCallback callback) {
+    public static void inputTextDialog(Context context, int type, String title, String text
+            , final InputDialogCallback callback) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle(title);
 
@@ -398,7 +426,18 @@ public class Utils {
     }
 
     public static String formattedPrice(double price) {
-        return price == 0 ? "..." : String.valueOf(price).replace(".", ",") + "\u20BD";
+        if (price == 0) {
+            return "...";
+        }
+
+
+        String[] parts = String.valueOf(Math.floor(price * 100) / 100).split("\\.");
+
+        if (parts[1].length() == 1) {
+            parts[1] = parts[1] + "0";
+        }
+
+        return price == 0 ? "..." : parts[0] + "," + parts[1] + "\u20BD";
     }
 
     public static int calculateInSampleSize(

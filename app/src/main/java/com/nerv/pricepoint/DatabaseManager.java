@@ -1,12 +1,19 @@
 package com.nerv.pricepoint;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Message;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -28,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by NERV on 10.10.2017.
@@ -96,6 +104,8 @@ public class DatabaseManager {
         }
     };
 
+    private LocationManager locationManager;
+
     private Activity activity;
     private AuthCallback authCallback;
 
@@ -125,14 +135,74 @@ public class DatabaseManager {
     public DatabaseManager(Activity activity) {
         this.activity = activity;
 
+        //locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
         authContext = new AuthenticationContext(activity, AUTHORITY, true);
         appSettings = activity.getSharedPreferences(APP_PREFERENCES, Context.MODE_PRIVATE);
         D = appSettings.getInt("D", 0);
 
         getCurDate();
+
+        /*LocationListener locationListener = new LocationListener() {
+            public void onLocationChanged(Location location) {
+            }
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
+
+            public void onProviderEnabled(String provider) {
+            }
+
+            public void onProviderDisabled(String provider) {
+            }
+        };
+
+        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);*/
     }
 
-    private void getCurDate() {
+    /*public void setLocation(final Task task) {
+        Location l = getLastKnownLocation();
+
+        if (l != null) {
+            task.latitude = String.valueOf(l.getLatitude());
+            task.longitude = String.valueOf(l.getLongitude());
+        }
+    }
+
+    private Location getLastKnownLocation() {
+        List<String> providers = locationManager.getProviders(true);
+        Location bestLocation = null;
+
+        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return null;
+        }
+
+        for (String provider : providers) {
+            Location l = locationManager.getLastKnownLocation(provider);
+            if (l == null) {
+                continue;
+            }
+
+            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+                bestLocation = l;
+            }
+        }
+        return bestLocation;
+    }*/
+
+    public void setD(int d) {
+        D = d;
+        SharedPreferences.Editor editor = appSettings.edit();
+        editor.putInt("D", D);
+        editor.apply();
+    }
+
+    public void getCurDate() {
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -225,6 +295,9 @@ public class DatabaseManager {
             json.put("task_edit", false);
             json.put("task_no", task.noGoods);
             json.put("task_done", true);
+            json.put("task_date", Utils.dateToDBString(curDate));
+            String time = Utils.getTime(curDate);
+            json.put("task_time", time);
 
             if (task.promo != -1) {
                 json.put("task_stock", task.promo);
@@ -350,6 +423,7 @@ public class DatabaseManager {
             @Override
             public void run() {
                 orders = new ArrayList<>();
+                Date today = Utils.dateWithoutTime(curDate);
 
                 for (int i = 0; i < dirs.length; i++) {
                     if (dirs[i].isDirectory()) {
@@ -368,8 +442,13 @@ public class DatabaseManager {
                                     ordersHM.put(order.orderId, order);
                                 } else {
                                     Task t = (Task) obj;
-                                    t.taskFile = filePath;
-                                    tasks.add(t);
+
+                                    if (t.endDate.compareTo(today) != -1) {
+                                        t.taskFile = filePath;
+                                        tasks.add(t);
+                                    } else {
+                                        files[j].delete();
+                                    }
                                 }
                             }
                         }
